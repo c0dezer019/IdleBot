@@ -1,4 +1,5 @@
 from discord.ext import commands
+from discord.utils import find
 from dotenv import load_dotenv
 from utility.helpers import check_idle_time, filter_channels, get_user_last_message, get_messages, generate_idle_msg
 import discord
@@ -21,6 +22,19 @@ async def on_ready():
 
     for guild in bot.guilds:
         print(f'{guild.name}(id: {guild.id})')
+
+    await bot.change_presence(activity = discord.Game('Cops and Robbers'))
+
+
+@bot.event
+async def on_guild_join(guild):
+    general = find(lambda x: x.name == 'general', guild.text_channels)
+    sys_chan = guild.system_channel
+
+    if sys_chan and sys_chan.permissions_for(guild.me).send_messages:
+        await sys_chan.send('Hello {}! I am here to enforce the law.'.format(guild.name))
+    else:
+        await general.send('Hello {}! I am here to enforce the law.'.format(guild.name))
 
 
 @bot.command()
