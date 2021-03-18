@@ -1,4 +1,3 @@
-from datetime import timezone
 from discord.ext import commands
 from dotenv import load_dotenv
 from utility.helpers import check_idle_time, filter_channels, get_user_last_message, get_messages, generate_idle_msg
@@ -32,7 +31,6 @@ async def status(ctx, args):
     for i, v in enumerate(members):
         if args == v.name:
             user = v
-            user_id = v.id
             break
 
     if not user:
@@ -42,7 +40,7 @@ async def status(ctx, args):
     all_messages = await get_messages(text_channels)
     user_last_message = get_user_last_message(all_messages, user)
     time_idle = check_idle_time(user_last_message.created_at.replace(tzinfo = None))
-    response = generate_idle_msg(time_idle, user)
+    response = generate_idle_msg(time_idle)
 
     await ctx.channel.send(f'{user.name}' + response)
 
