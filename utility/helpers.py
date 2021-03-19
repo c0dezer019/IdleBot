@@ -42,12 +42,12 @@ async def get_messages(channels):
     messages = []
 
     for chan in channels:
-        messages.append(await chan.history(limit = 10000).flatten())
+        messages.append(await chan.history(limit = 100).flatten())
 
     return messages
 
 
-def generate_idle_msg(time_idle, user):
+def generate_idle_msg(time_idle):
     msg_str = ''
 
     if len(time_idle) == 6:
