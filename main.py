@@ -38,17 +38,18 @@ async def on_guild_join(guild):
 
 
 @bot.command()
-async def status(ctx, args):
+async def ping(ctx, args):
     members = ctx.message.guild.members
     user = ''
 
-    for i, v in enumerate(members):
-        if args == v.name:
-            user = v
-            break
+    if args:
+        for i, v in enumerate(members):
+            if args == v.name:
+                user = v
+                break
 
-    if not user:
-        await ctx.channel.send(f'{args} is not a valid user or has changed their name.')
+        if not user:
+            await ctx.channel.send(f'{args} is not a valid user or has changed their name.')
 
     text_channels = filter_channels(ctx.message.guild.channels)
     all_messages = await get_messages(text_channels)
