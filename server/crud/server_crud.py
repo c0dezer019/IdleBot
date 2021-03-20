@@ -18,7 +18,7 @@ def get_server(server_id):
         raise Exception(f'No server at id: {server_id}')
 
 
-def create_server(**kwargs):
+def add_server(**kwargs):
     new_server = Server(**kwargs)
     db.session.add(new_server)
     db.session.commit()
@@ -36,5 +36,14 @@ def update_server(server_id, **update_values):
         db.session.commit()
 
         return jsonify(server.as_dict())
+    else:
+        raise Exception(f'No server at id {server_id}')
+
+
+def remove_server(server_id):
+    server = Server.query.get(server_id)
+
+    if server:
+        db.session.remove(server)
     else:
         raise Exception(f'No server at id {server_id}')

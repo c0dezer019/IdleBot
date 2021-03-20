@@ -17,7 +17,7 @@ def get_user(user_id):
         raise Exception(f'No user at id: {user_id}')
 
 
-def create_user(**kwargs):
+def add_user(**kwargs):
     new_user = User(**kwargs)
     db.session.add(new_user)
     db.session.commit()
@@ -36,5 +36,15 @@ def update_user(user_id, **update_values):
 
         return jsonify(user.as_dict())
 
+    else:
+        raise Exception(f'No user at id {user_id}')
+
+
+def remove_user(user_id):
+    user = User.query.get(user_id)
+
+    if user:
+        db.session.delete(user)
+        db.session.commit()
     else:
         raise Exception(f'No user at id {user_id}')
