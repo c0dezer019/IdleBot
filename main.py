@@ -3,15 +3,21 @@ from discord.utils import find
 from dotenv import load_dotenv
 from utility.helpers import check_idle_time, filter_channels, get_user_last_message, get_messages, generate_idle_msg
 import discord
+import json
 import os
+import requests
 
 
 load_dotenv()
 TOKEN = os.getenv('TOKEN')
 
+api_base_url_dev = 'https://localhost:3000/'
+api_base_url_prod = 'https://combot.bblankenship.me/v1/'
 description = '''A bot to enforce the rules.'''
 intents = discord.Intents.default()
 intents.members = True
+
+headers = {'Content-Type': 'application/json'}
 
 bot = commands.Bot(command_prefix='?', description=description, intents=intents)
 
@@ -28,9 +34,20 @@ async def on_ready():
 
 @bot.event
 async def on_guild_join(guild):
+    api_add = '{0}users/add'.format(api_base_url_dev)
+    api_get = '{0}users'.format(api_base_url_dev)
     general = find(lambda x: x.name == 'general', guild.text_channels)
     sys_chan = guild.system_channel
+
+    # get list of all users from database and guild
+    db_users = requests.get(api_get)
     users = guild.members
+    print(db_users)
+    print(users)
+    # if users don't match guild members, add member to the database.
+    # if member is in database, add guild relation to member.
+    # if member already has a guild relation, do nothing.
+    # For each member, assign variable for user status.
 
     if sys_chan and sys_chan.permissions_for(guild.me).send_messages:
         await sys_chan.send('Hello {}! I am here to enforce the law.'.format(guild.name))
@@ -57,6 +74,9 @@ async def ping(ctx, args):
     user_last_message = get_user_last_message(all_messages, user)
     time_idle = check_idle_time(user_last_message.created_at.replace(tzinfo = None))
     response = generate_idle_msg(time_idle)
+
+    # if user has no recent activity, label as inactive.
+    # if user has recent activity, update the appropriate fields in the database.
 
     await ctx.channel.send(f'{user.name}' + response)
 

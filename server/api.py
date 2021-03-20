@@ -1,4 +1,4 @@
-from models import User, Server, app
+from models import app
 from flask import jsonify, request
 from crud.user_crud import add_user, get_user, get_all_users, update_user, remove_user
 from crud.server_crud import add_server, get_server, get_all_servers, update_server, remove_server
@@ -46,3 +46,11 @@ def manage_server(server_id):
         return remove_server(server_id)
     else:
         raise Exception('That method isn\'t allowed here.')
+
+
+@app.errorhandler(Exception)
+def unhandled_exception(e):
+    app.logger.error('Unhandled Exception: %s', e)
+    message_str = e.__str__()
+
+    return jsonify(message = message_str.split(':')[0])
