@@ -30,6 +30,7 @@ async def on_ready():
 async def on_guild_join(guild):
     general = find(lambda x: x.name == 'general', guild.text_channels)
     sys_chan = guild.system_channel
+    users = guild.members
 
     if sys_chan and sys_chan.permissions_for(guild.me).send_messages:
         await sys_chan.send('Hello {}! I am here to enforce the law.'.format(guild.name))
