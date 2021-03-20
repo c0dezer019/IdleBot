@@ -12,6 +12,7 @@ pytz = "*"
 trio = "*"
 "discord.py" = "*"
 numpy = "*"
+requests = "*"
 
 [dev-packages]
 
