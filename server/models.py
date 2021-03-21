@@ -29,8 +29,8 @@ class PSQLAlchemy(SQLAlchemy):
 
 db = PSQLAlchemy(app)
 
-servers = db.Table(
-    'servers',
+user_server = db.Table(
+    'user_server',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key = True),
     db.Column('server_id', db.Integer, db.ForeignKey('server.id'), primary_key = True)
 )
@@ -43,7 +43,7 @@ class User(db.Model):
     username = db.Column(db.String, unique = True, nullable = False)
     servers = db.relationship(
         'Server',
-        secondary = servers,
+        secondary = user_server,
         lazy = 'subquery',
         backref = db.backref('pages', lazy = True))
     last_activity = db.Column(db.String)
