@@ -33,9 +33,12 @@ def add_users(db_users, server_users, guild_id):
             res = requests.post(api_add_user, packet)
 
             if res.status_code == 200:
-                pass
+                response = res
             else:
-                return 400
+                errors.insert(len(errors), {'res_code': res.status_code, 'user': {'id': v.id, 'username': v}})
+
+    if len(errors) > 0:
+        return errors, response
 
     return response
 
