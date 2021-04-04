@@ -1,7 +1,7 @@
 from discord.ext import commands
 from discord import Game
 from discord.utils import find
-import utility.request_handler as rh
+import src.utility.request_handler as rh
 
 
 class Setup(commands.Cog):

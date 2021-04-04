@@ -1,7 +1,6 @@
 from discord.ext import commands
 from dotenv import load_dotenv
-
-from cogs import AdminCommands, Listeners, Setup, UserCommands
+import cogs as c
 import discord
 import os
 
@@ -14,9 +13,9 @@ intents.members = True
 
 bot = commands.Bot(command_prefix = '?', description = description, intents = intents)
 
-bot.add_cog(AdminCommands(bot))
-bot.add_cog(Listeners(bot))
-bot.add_cog(Setup(bot))
-bot.add_cog(UserCommands(bot))
+bot.add_cog(c.AdminCommands(bot))
+bot.add_cog(c.Listeners(bot))
+bot.add_cog(c.Setup(bot))
+bot.add_cog(c.UserCommands(bot))
 
 bot.run(TOKEN)

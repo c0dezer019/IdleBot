@@ -1,6 +1,6 @@
 from discord.ext import commands
 from discord.utils import find
-import utility.request_handler as rh
+import src.utility.request_handler as rh
 
 
 class AdminCommands(commands.Cog):
@@ -9,7 +9,7 @@ class AdminCommands(commands.Cog):
 
 
 @commands.command()
-def setup(self, ctx):
+async def setup(self, ctx):
     general = find(lambda x: x.name == 'general', ctx.guild.text_channels)
     sys_chan = ctx.guild.system_channel
 
