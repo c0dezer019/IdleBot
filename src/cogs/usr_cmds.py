@@ -30,3 +30,7 @@ class UserCommands(commands.Cog):
         # if user has recent activity, update the appropriate fields in the database.
 
         await ctx.channel.send(f'{user.name}' + response)
+
+
+def setup(bot):
+    bot.add_cog(UserCommands(bot))

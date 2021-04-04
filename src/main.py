@@ -1,6 +1,5 @@
 from discord.ext import commands
 from dotenv import load_dotenv
-import cogs as c
 import discord
 import os
 
@@ -12,10 +11,10 @@ intents = discord.Intents.default()
 intents.members = True
 
 bot = commands.Bot(command_prefix = '?', description = description, intents = intents)
+extensions = ['cogs.admin_cmds', 'cogs.setup_tasks', 'cogs.usr_cmds']
 
-bot.add_cog(c.AdminCommands(bot))
-bot.add_cog(c.Listeners(bot))
-bot.add_cog(c.Setup(bot))
-bot.add_cog(c.UserCommands(bot))
+if __name__ == '__main__':
+    for cog in extensions:
+        bot.load_extension(cog)
 
-bot.run(TOKEN)
+bot.run(TOKEN, bot = True, reconnect = True)
