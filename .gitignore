@@ -2,4 +2,4 @@
 .env
 .ssh
 .test
-/src/utility/__pycache__
+/utility/__pycache__

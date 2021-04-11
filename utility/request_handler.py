@@ -9,7 +9,7 @@ def add_server(guild):
     api_get_server = '{0}bot/servers/{1}'.format(api_base_url_dev, guild['server_id'])
     server = requests.get(api_get_server)
 
-    if server.status_code == 404:
+    if server.status_code == 400:
         packet = { 'server_id': guild['server_id'], 'name': guild['name'] }
         response = requests.post(api_add_server, json = packet)
 
@@ -22,10 +22,10 @@ def add_users(server_users, db_users, guild_id):
     api_add_user = '{0}bot/users/add'.format(api_base_url_dev)
     db_user_ids = []
     errors = []
-    response = { }
+    response = {}
 
     for i, v in enumerate(db_users):
-        db_user_ids.insert(len(db_user_ids), v.id)
+        db_user_ids.insert(len(db_user_ids), v)
 
     for i, v in enumerate(server_users):
         if v.id not in db_user_ids:
@@ -44,11 +44,35 @@ def add_users(server_users, db_users, guild_id):
 
 
 def handle_users(guild):
-    api_get_user = '{0}bot/users'.format(api_base_url_dev)
-    res = requests.get(api_get_user)
+    api_get_users = '{0}bot/users'.format(api_base_url_dev)
+    res = requests.get(api_get_users)
 
     if res.status_code == 200:
         users = res.json()
         response = add_users(guild['users'], users, guild['server_id'])
 
         return response
+
+
+def update_timestamps(user_id, guild_id, act_type, act_loc, act_timestamp):
+    api_get_user = '{0}bot/users/{1}'.format(api_base_url_dev, user_id)
+    api_get_server = '{0}/bot/servers/{1}'.format(api_base_url_dev, guild_id)
+
+    server_packet = {
+        'last_activity': str(act_type),
+        'last_activity_ts': act_timestamp.isoformat(),
+    }
+
+    user_packet = {
+        'last_activity': str(act_type),
+        'last_activity_loc': str(act_loc),
+        'last_activity_ts': act_timestamp.isoformat(),
+    }
+
+    server = requests.patch(api_get_server, json = server_packet)
+    user = requests.patch(api_get_user, json = user_packet)
+
+    if server.status_code != 200 or user.status_code != 200:
+        return server.status_code, user.status_code
+
+    return 200

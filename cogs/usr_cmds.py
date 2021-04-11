@@ -1,5 +1,5 @@
 from discord.ext import commands
-from src.utility.helpers import check_idle_time, filter_channels, get_user_last_message, get_messages, generate_idle_msg
+from utility.helpers import check_idle_time, filter_channels, get_user_last_message, get_messages, generate_idle_msg
 
 
 class UserCommands(commands.Cog):
