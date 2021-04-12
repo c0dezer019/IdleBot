@@ -19,7 +19,7 @@ extensions = ['cogs.admin_cmds', 'cogs.listeners', 'cogs.setup_tasks', 'cogs.usr
 @bot.event
 async def on_error(event, *args, **kwargs):
     message = args[0]
-    logging.warning(traceback.format_exc())
+    traceback.print_exc(file = 'utility/error_log')
 
     await message.guild.system_channel.send('I have encountered an error but do not worry, I will alert my owner.')
 

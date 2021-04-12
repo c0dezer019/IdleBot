@@ -2,6 +2,8 @@ from datetime import datetime
 from discord.ext import commands
 from discord.utils import find
 from pytz import timezone
+import logging
+import traceback
 import utility.request_handler as rh
 
 
@@ -27,7 +29,7 @@ class Listeners(commands.Cog):
                 await general.send('Welcome {0.mention}!'.format(member))
 
         except ValueError:
-            print("That guild doesn't exist")
+            traceback.print_exc(file = 'utility/error_log')
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -46,7 +48,7 @@ class Listeners(commands.Cog):
                 rh.update_user(user_id, **data_to_change)
                 rh.update_server(server_id, **data_to_change)
             except ValueError:
-                print('Something went wrong while updating user.')
+                traceback.print_exc(file = 'utility/error_log')
 
 
 def setup(bot):
