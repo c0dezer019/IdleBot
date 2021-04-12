@@ -32,15 +32,19 @@ class Listeners(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
         user_id = message.author.id
-        guild_id = message.author.guild.id
-        chan_type = message.channel.type
-        chan = message.channel
+        server_id = message.author.guild.id
         tz = timezone('US/Central')
         local_dt = tz.localize(datetime.now())
+        data_to_change = {
+            'last_activity': message.channel.type[0],
+            'last_activity_loc': message.channel.name,
+            'last_activity_ts': local_dt.isoformat(),
+        }
 
         if not message.author.bot:
             try:
-                rh.update_timestamps(user_id, guild_id, chan_type, chan, local_dt)
+                rh.update_user(user_id, **data_to_change)
+                rh.update_server(server_id, **data_to_change)
             except ValueError:
                 print('Something went wrong while updating user.')
 
