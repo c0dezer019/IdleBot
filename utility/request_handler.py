@@ -54,25 +54,31 @@ def handle_users(guild):
         return response
 
 
-def update_timestamps(user_id, guild_id, act_type, act_loc, act_timestamp):
+def update_server(server_id, **data):
+    api_get_server = '{0}bot/servers/{1}'.format(api_base_url_dev, server_id)
+    data_packet = {}
+
+    for k, v in data.items():
+        data_packet[k] = v
+
+    server = requests.patch(api_get_server, json = data_packet)
+
+    if server.status_code != 200:
+        return server.status_code
+
+    return 200
+
+
+def update_user(user_id, **data):
     api_get_user = '{0}bot/users/{1}'.format(api_base_url_dev, user_id)
-    api_get_server = '{0}/bot/servers/{1}'.format(api_base_url_dev, guild_id)
+    data_packet = {}
 
-    server_packet = {
-        'last_activity': str(act_type),
-        'last_activity_ts': act_timestamp.isoformat(),
-    }
+    for k, v in data.items():
+        data_packet[k] = v
 
-    user_packet = {
-        'last_activity': str(act_type),
-        'last_activity_loc': str(act_loc),
-        'last_activity_ts': act_timestamp.isoformat(),
-    }
+    user = requests.patch(api_get_user, json = data_packet)
 
-    server = requests.patch(api_get_server, json = server_packet)
-    user = requests.patch(api_get_user, json = user_packet)
-
-    if server.status_code != 200 or user.status_code != 200:
-        return server.status_code, user.status_code
+    if user.status_code != 200:
+        return user.status_code
 
     return 200
