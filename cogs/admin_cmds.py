@@ -31,17 +31,13 @@ class AdminCommands(commands.Cog):
         else:
             await sys_chan.send('I\'m now in business! Time to start collecting names')
 
-        # if users don't match guild members, add member to the database.
-        member_packet = { 'guild_id': ctx.guild.id, 'members': ctx.guild.members }
-        response = rh.handle_members(member_packet)
+        # Add members
+        response = rh.add_member(ctx.guild.id, ctx.guild.members)
 
         if response == 200:
             await sys_chan.send(
-                'Names have been collected, eyeglasses have been cleaned, bunnies have been killed. Carry'
+                'Names have been collected, eyeglasses have been cleaned, and bunnies have been killed. Carry'
                 ' on')
-        elif type(response) == tuple:
-            await sys_chan.send('Some names were collected, but I couldn\'t understand some of this gibberish. The '
-                                'Here, I made some weird notes: {}'.format(response[1]))
 
     @commands.command()
     async def set(self, ctx):
