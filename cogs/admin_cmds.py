@@ -21,9 +21,9 @@ class AdminCommands(commands.Cog):
             await general.send('Hello {}! I am here to take names and drink coffee, but I am all out of coffee. Please '
                                'wait while I get a refill.'.format(ctx.guild.name))
 
-        # Add server
-        guild_info = { 'server_id': ctx.guild.id, 'name': ctx.guild.name }
-        response = rh.add_server(guild_info)
+        # Add guild
+        guild_info = { 'guild_id': ctx.guild.id, 'name': ctx.guild.name }
+        response = rh.add_guild(guild_info)
 
         if response.status_code != 200:
             await sys_chan.send('I couldn\'t find any coffee. I no workee without coffee. Please pass a this code to my'
@@ -32,16 +32,25 @@ class AdminCommands(commands.Cog):
             await sys_chan.send('I\'m now in business! Time to start collecting names')
 
         # if users don't match guild members, add member to the database.
-        user_packet = { 'server_id': ctx.guild.id, 'users': ctx.guild.members }
-        response = rh.handle_users(user_packet)
+        member_packet = { 'guild_id': ctx.guild.id, 'members': ctx.guild.members }
+        response = rh.handle_members(member_packet)
 
-        if response.status_code == 200:
+        if response == 200:
             await sys_chan.send(
                 'Names have been collected, eyeglasses have been cleaned, bunnies have been killed. Carry'
                 ' on')
         elif type(response) == tuple:
             await sys_chan.send('Some names were collected, but I couldn\'t understand some of this gibberish. The '
                                 'Here, I made some weird notes: {}'.format(response[1]))
+
+    @commands.command()
+    async def set(self, ctx):
+        # Controls the functionality of the bot per guild.
+        settings = {
+            'kick_idle_members': True,
+            'allowed_idle_time': [1, 0, 0, 0, 0],  # Months, weeks, days, hours, minutes
+        }
+        pass
 
 
 def setup(bot):
