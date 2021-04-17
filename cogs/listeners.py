@@ -26,13 +26,17 @@ class Listeners(commands.Cog):
             await general.send('Welcome {0.mention}!'.format(member))
 
         try:
-            rh.add_members()
+            rh.add_member(list(member))
 
-        except ValueError:
+        except Exception:
             raise
 
     @commands.Cog.listener()
     async def on_message(self, message):
+
+        if message.content.startswith('?ping') or message.content.startswith('?setup'):
+            return
+
         member_id = message.author.id
         guild_id = message.author.guild.id
         tz = timezone('US/Central')
