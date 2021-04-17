@@ -18,7 +18,7 @@ def add_guild(guild_info):
         return guild
 
 
-def add_member(members):
+def add_member(guild_id, members):
     api_add_member = f'{api_base_url_dev}bot/members/add'
 
     for v in members:
@@ -26,7 +26,13 @@ def add_member(members):
         response = requests.get(api_get_member)
 
         if response.status_code == 404:
-            packet = {'member_id': v.id, 'username': f'{v.name}#{v.discriminator}'}
+            packet = {
+                'guild_id': guild_id,
+                'member_id': v.id,
+                'username': f'{v.name}#{v.discriminator}',
+                'nickname': v.nick
+            }
+
             response = requests.post(api_add_member, json = packet)
 
             if response.status_code == 200:
@@ -36,6 +42,8 @@ def add_member(members):
 
         else:
             pass
+
+    return 200
 
 
 def get_guild(guild_id):
