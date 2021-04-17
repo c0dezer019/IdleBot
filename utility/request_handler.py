@@ -18,32 +18,24 @@ def add_guild(guild_info):
         return guild
 
 
-def add_members(guild_members, db_members, guild_id):
+def add_member(members):
     api_add_member = f'{api_base_url_dev}bot/members/add'
-    db_member_ids = []
-    errors = []
-    response = {}
 
-    for i, v in enumerate(db_members):
-        db_member_ids.insert(len(db_member_ids), v['member_id'])
+    for v in members:
+        api_get_member = f'{api_base_url_dev}bot/members/{v.id}'
+        response = requests.get(api_get_member)
 
-    for i, v in enumerate(guild_members):
-        if v.id not in db_member_ids:
-            packet = { 'member_id': v.id, 'username': f'{v.name}#{v.discriminator}', 'guild_id': guild_id }
+        if response.status_code == 404:
+            packet = {'member_id': v.id, 'username': f'{v.name}#{v.discriminator}'}
             response = requests.post(api_add_member, json = packet)
 
             if response.status_code == 200:
-                response = response.status_code
+                pass
             else:
-                errors.insert(len(errors), {
-                    'res_code': response.status_code,
-                    'member': { 'id': v.id, 'username': v }
-                })
+                raise Exception(f'Was unable to add user id {v.id}, username {v.name}#{v.discriminator}')
 
-    if len(errors) > 0:
-        return response, errors
-
-    return response
+        else:
+            pass
 
 
 def get_guild(guild_id):
@@ -58,17 +50,6 @@ def get_member(member_id):
     response = requests.get(api_get_member)
 
     return response
-
-
-def handle_members(guild):
-    api_get_members = f'{api_base_url_dev}bot/members'
-    res = requests.get(api_get_members)
-
-    if res.status_code == 200:
-        members = res.json()
-        response = add_members(guild['members'], members, guild['guild_id'])
-
-        return response
 
 
 def update_guild(guild_id, **data):
