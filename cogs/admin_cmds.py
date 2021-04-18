@@ -1,3 +1,4 @@
+from discord import Member
 from discord.ext import commands
 from discord.utils import find
 import utility.request_handler as rh
@@ -9,6 +10,7 @@ class AdminCommands(commands.Cog):
         self.bot = bot
 
     @commands.command()
+    @commands.has_guild_permissions(administrator = True)
     async def setup(self, ctx):
         general = find(lambda x: x.name == 'general', ctx.guild.text_channels)
         sys_chan = ctx.guild.system_channel
@@ -47,6 +49,44 @@ class AdminCommands(commands.Cog):
             'allowed_idle_time': [1, 0, 0, 0, 0],  # Months, weeks, days, hours, minutes
         }
         pass
+
+    @commands.command()
+    @commands.has_any_role('Administrator', 'Moderator')
+    async def ping(self, ctx, member: Member = None):
+        general = find(lambda x: x.name == 'general', ctx.guild.text_channels)
+        sys_chan = ctx.guild.system_channel
+
+        try:
+            if member.dm_channel:
+                await member.dm_channel.send("Hello!")
+            else:
+                await member.create_dm()
+                await member.dm_channel.send("hello!")
+
+        except AttributeError:
+            if sys_chan and sys_chan.permissions_for(ctx.guild.me).send_messages:
+                await sys_chan.send(f'{ctx.message.author.mention}, you must provide a member name (case-sensitive) '
+                                    f'for this command to work.')
+            else:
+                await general.send(f'{ctx.message.author.mention}, you must provide a member name (case-sensitive) '
+                                   f'for this command to work.')
+
+            raise AttributeError('Missing required parameter.')
+
+    @ping.error
+    async def ping_error(self, ctx, error):
+        general = find(lambda x: x.name == 'general', ctx.guild.text_channels)
+        sys_chan = ctx.guild.system_channel
+
+        if isinstance(error, commands.MemberNotFound):
+            if sys_chan and sys_chan.permissions_for(ctx.guild.me).send_messages:
+                await sys_chan.send(f'{ctx.message.author.mention}, that member was not found. Check spelling and try '
+                                    f'again. The name is case-sensitive and may be easier to  just @ (mention) the user'
+                                    f' in question.')
+            else:
+                await general.send(f'{ctx.message.author.mention}, was not found. Check spelling and try '
+                                   f'again. The name is case-sensitive and may be easier to  just @ (mention) the user '
+                                   f'in question.')
 
 
 def setup(bot):
