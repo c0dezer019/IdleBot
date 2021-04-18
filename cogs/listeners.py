@@ -33,34 +33,38 @@ class Listeners(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
+        if message.guild is not None:
+            if message.content.startswith('?ping') or message.content.startswith('?setup'):
+                return
 
-        if message.content.startswith('?ping') or message.content.startswith('?setup'):
-            return
+            member_id = message.author.id
+            guild_id = message.author.guild.id
+            tz = timezone('US/Central')
+            local_dt = datetime.now(tz)
+            data_to_change = {
+                'last_activity': message.channel.type[0],
+                'last_activity_loc': message.channel.name,
+                'last_activity_ts': local_dt.isoformat(),
+                'status': 'active',
+            }
 
-        member_id = message.author.id
-        guild_id = message.author.guild.id
-        tz = timezone('US/Central')
-        local_dt = datetime.now(tz)
-        data_to_change = {
-            'last_activity': message.channel.type[0],
-            'last_activity_loc': message.channel.name,
-            'last_activity_ts': local_dt.isoformat(),
-            'status': 'active',
-        }
+            if not message.author.bot:
+                try:
+                    rh.update_member(member_id, **data_to_change)
+                    rh.update_guild(guild_id, **data_to_change)
 
-        if not message.author.bot:
-            try:
-                rh.update_member(member_id, **data_to_change)
-                rh.update_guild(guild_id, **data_to_change)
+                except AttributeError:
+                    raise
 
-            except AttributeError:
-                raise
+                except TypeError:
+                    raise
 
-            except TypeError:
-                raise
-
-            except ValueError:
-                raise
+                except ValueError:
+                    raise
+        elif not message.guild and str(message.channel.type) == 'private' and not message.author.bot:
+            await message.channel.send(
+                'Sorry, but I do not respond to DM\'s other than with this message. Try using me in a guild '
+                'that I am in.')
 
 
 def setup(bot):
