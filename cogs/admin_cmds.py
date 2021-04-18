@@ -51,7 +51,7 @@ class AdminCommands(commands.Cog):
         pass
 
     @commands.command()
-    @commands.has_any_role('Administrator', 'Moderator')
+    @commands.has_guild_permissions(kick_members = True)
     async def ping(self, ctx, member: Member = None):
         general = find(lambda x: x.name == 'general', ctx.guild.text_channels)
         sys_chan = ctx.guild.system_channel
@@ -87,6 +87,14 @@ class AdminCommands(commands.Cog):
                 await general.send(f'{ctx.message.author.mention}, was not found. Check spelling and try '
                                    f'again. The name is case-sensitive and may be easier to  just @ (mention) the user '
                                    f'in question.')
+
+        elif isinstance(error, commands.MissingAnyRole):
+            if sys_chan and sys_chan.permissions_for(ctx.guild.me).send_messages:
+                await sys_chan.send(f'{ctx.message.author.mention}, unfortunately, you do not have the required role '
+                                    f'to perform this command.')
+            else:
+                await general.send(f'{ctx.message.author.mention}, unfortunately, you do not have the required role '
+                                   f'to perform this command.')
 
 
 def setup(bot):
