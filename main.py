@@ -33,6 +33,11 @@ async def on_error(event, *args, **kwargs):
     await message.guild.system_channel.send('I have encountered an error but do not worry, I will alert my owner.')
 
 
+@bot.check
+async def block_dms(ctx):
+    return ctx.guild is not None
+
+
 if __name__ == '__main__':
     for cog in extensions:
         bot.load_extension(cog)
