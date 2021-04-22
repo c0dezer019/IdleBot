@@ -1,9 +1,16 @@
-# EnforcerBot
-A simple Python bot to enforce the rules.
+# IdleBot
+A simple Python bot to track server activity.
 
-## MOTIVATION
-Most Discord bots that I've seen do not provide actual user activity levels. I wanted to build a bot that monitors user idle times as well as
-automatically boot the user if idle for x amount of time. Beyond that, bot users can set Server rules.
+IdleBot monitors a user or server's idle times. IdleBot can be used to trim the member list of members who are no longer active or have an interest in the guild. The bot provides full customization so that it only behaves the way you expect it to, all-the-while providing simple, easy to understand data.
 
-## Intended Features
+## Motivation
+
+
+## Features
+- Long-term data persistence with PostgreSQL.
+- Logs user activity timestamps in the channels that it can see.
+- Calculates user idle times based off timestamp of last activity.
+- Flags a user as active or inactive based on a set idle time.
+- Sets an inactive role on inactive users.
+- Rich setting options settable by server admin.
 
