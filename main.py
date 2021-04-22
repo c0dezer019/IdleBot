@@ -9,7 +9,7 @@ import os
 load_dotenv()
 TOKEN = os.getenv('TOKEN')
 
-description = '''A bot to enforce the rules.'''
+description = '''Got idle?'''
 intents = discord.Intents.default()
 intents.members = True
 
@@ -30,7 +30,13 @@ async def on_error(event, *args, **kwargs):
 
     logger.error(f'Error happened within {event}:\n{traceback.format_exc()}',)
 
-    await message.guild.system_channel.send('I have encountered an error but do not worry, I will alert my owner.')
+    if message.guild is not None:
+        await message.guild.system_channel.send('I have encountered an error but do not worry, I will alert my owner.')
+
+
+@bot.check
+async def globally_block_dms(ctx):
+    return ctx.guild is not None
 
 
 if __name__ == '__main__':
