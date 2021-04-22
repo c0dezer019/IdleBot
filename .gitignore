@@ -2,5 +2,5 @@
 .env
 .ssh
 .test
-error_log.txt
+error_log*.txt
 /utility/__pycache__
