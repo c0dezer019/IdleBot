@@ -50,11 +50,11 @@ def get_guild(guild_id):
     api_get_guild = f'{api_base_url_dev}bot/guilds/{guild_id}'
     response = requests.get(api_get_guild)
 
-    return response.json()
+    return response
 
 
 def get_member(member_id):
-    api_get_member = f'{api_base_url_dev}bot/guilds/{member_id}'
+    api_get_member = f'{api_base_url_dev}bot/members/{member_id}'
     response = requests.get(api_get_member)
 
     return response
