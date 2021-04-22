@@ -1,54 +1,90 @@
 import requests
+import json
 
 api_base_url_dev = 'http://127.0.0.1:5000/'
 api_base_url_prod = 'https://combot.bblankenship.me/v1/'
 
 
-def add_server(guild):
-    api_add_server = '{0}bot/servers/add'.format(api_base_url_dev)
-    api_get_server = '{0}bot/servers/{1}'.format(api_base_url_dev, guild['server_id'])
-    server = requests.get(api_get_server)
+def add_guild(guild_info):
+    api_get_guild = f'{api_base_url_dev}bot/guilds/{guild_info["guild_id"]}'
+    api_add_guild = f'{api_base_url_dev}bot/guilds/add'
+    guild = requests.get(api_get_guild)
 
-    if server.status_code == 404:
-        packet = { 'server_id': guild['server_id'], 'name': guild['name'] }
-        response = requests.post(api_add_server, json = packet)
+    if guild.status_code == 404:
+        response = requests.post(api_add_guild, json = guild_info)
 
         return response
     else:
-        return 200
+        return guild
 
 
-def add_users(server_users, db_users, guild_id):
-    api_add_user = '{0}bot/users/add'.format(api_base_url_dev)
-    db_user_ids = []
-    errors = []
-    response = { }
+def add_member(guild_id, members):
+    api_add_member = f'{api_base_url_dev}bot/members/add'
 
-    for i, v in enumerate(db_users):
-        db_user_ids.insert(len(db_user_ids), v.id)
+    for v in members:
+        api_get_member = f'{api_base_url_dev}bot/members/{v.id}'
+        response = requests.get(api_get_member)
 
-    for i, v in enumerate(server_users):
-        if v.id not in db_user_ids:
-            packet = { 'user_id': v.id, 'username': f'{v.name}#{v.discriminator}', 'server_id': guild_id }
-            res = requests.post(api_add_user, json = packet)
+        if response.status_code == 404:
+            packet = {
+                'guild_id': guild_id,
+                'member_id': v.id,
+                'username': f'{v.name}#{v.discriminator}',
+                'nickname': v.nick
+            }
 
-            if res.status_code == 200:
-                response = res
+            response = requests.post(api_add_member, json = packet)
+
+            if response.status_code == 200:
+                pass
             else:
-                errors.insert(len(errors), { 'res_code': res.status_code, 'user': { 'id': v.id, 'username': v } })
+                raise Exception(f'Was unable to add user id {v.id}, username {v.name}#{v.discriminator}')
 
-    if len(errors) > 0:
-        return response, errors
+        else:
+            pass
+
+    return 200
+
+
+def get_guild(guild_id):
+    api_get_guild = f'{api_base_url_dev}bot/guilds/{guild_id}'
+    response = requests.get(api_get_guild)
 
     return response
 
 
-def handle_users(guild):
-    api_get_user = '{0}bot/users'.format(api_base_url_dev)
-    res = requests.get(api_get_user)
+def get_member(member_id):
+    api_get_member = f'{api_base_url_dev}bot/members/{member_id}'
+    response = requests.get(api_get_member)
 
-    if res.status_code == 200:
-        users = res.json()
-        response = add_users(guild['users'], users, guild['server_id'])
+    return response
 
-        return response
+
+def update_guild(guild_id, **data):
+    api_get_guild = f'{api_base_url_dev}bot/guilds/{guild_id}'
+    data_packet = {}
+
+    for k, v in data.items():
+        data_packet[k] = v
+
+    guild = requests.patch(api_get_guild, json = data_packet)
+
+    if guild.status_code != 200:
+        return guild.status_code
+
+    return 200
+
+
+def update_member(member_id, **data):
+    api_get_member = f'{api_base_url_dev}bot/members/{member_id}'
+    data_packet = {}
+
+    for k, v in data.items():
+        data_packet[k] = v
+
+    member = requests.patch(api_get_member, json = data_packet)
+
+    if member.status_code != 200:
+        return member.status_code
+
+    return 200
