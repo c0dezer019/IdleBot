@@ -12,6 +12,7 @@ TOKEN = os.getenv('TOKEN')
 description = '''Got idle?'''
 intents = discord.Intents.default()
 intents.members = True
+intents.guilds = True
 
 logger = logging.getLogger('Error Log')
 logger.setLevel(logging.ERROR)
@@ -21,7 +22,7 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 bot = commands.Bot(command_prefix = '?', description = description, intents = intents)
-extensions = ['cogs.admin_cmds', 'cogs.listeners', 'cogs.setup_tasks', 'cogs.user_cmds']
+extensions = ['cogs.admin_cmds', 'cogs.listeners', 'cogs.user_cmds']
 
 
 @bot.event
