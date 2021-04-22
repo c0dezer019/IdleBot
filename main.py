@@ -15,13 +15,13 @@ intents.members = True
 
 logger = logging.getLogger('Error Log')
 logger.setLevel(logging.ERROR)
-handler = RotatingFileHandler('error_log.txt', maxBytes = 10000, backupCount = 5)
+handler = RotatingFileHandler('error_log.txt', maxBytes = 524288, backupCount = 5)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 bot = commands.Bot(command_prefix = '?', description = description, intents = intents)
-extensions = ['cogs.admin_cmds', 'cogs.listeners', 'cogs.setup_tasks', 'cogs.usr_cmds']
+extensions = ['cogs.admin_cmds', 'cogs.listeners', 'cogs.setup_tasks', 'cogs.user_cmds']
 
 
 @bot.event
