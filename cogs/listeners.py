@@ -34,7 +34,10 @@ class Listeners(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.guild is not None:
-            if message.content.startswith('?ping') or message.content.startswith('?setup'):
+            if message.content.startswith('?ping') \
+                    or message.content.startswith('?setup') \
+                    or message.content.startswith('?check'):
+
                 return
 
             member_id = message.author.id
