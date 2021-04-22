@@ -1,4 +1,5 @@
 from datetime import datetime
+from discord import Game
 from discord.ext import commands
 from discord.utils import find
 from pytz import timezone
@@ -9,6 +10,30 @@ class Listeners(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        print(f'{self.bot.user} is connected to the following guilds:')
+
+        for guild in self.bot.guilds:
+            print(f'{guild.name}(id: {guild.id})')
+
+        await self.bot.change_presence(activity = Game('Cops and Robbers'))
+
+    @commands.Cog.listener()
+    async def on_guild_join(self, guild):
+        general = find(lambda x: x.name == 'general', guild.text_channels)
+        sys_chan = guild.system_channel
+
+        if sys_chan and sys_chan.permissions_for(guild.me).send_messages:
+            await sys_chan.send(
+                'Hello {}! I am here to take names and drink coffee, but I am all out of coffee. Please '
+                'wait while I get a refill.'.format(guild.name))
+        else:
+            await general.send('Hello {}! I am here to take names and drink coffee, but I am all out of coffee. Please '
+                               'wait while I get a refill.'.format(guild.name))
+
+        await sys_chan.send('?setup')
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
