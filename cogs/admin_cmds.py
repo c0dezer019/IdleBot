@@ -17,21 +17,13 @@ class AdminCommands(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    @commands.has_guild_permissions(administrator = True)
-    async def setup(self, ctx):
-        general = find(lambda x: x.name == 'general', ctx.guild.text_channels)
-        sys_chan = ctx.guild.system_channel
-
-        if sys_chan and sys_chan.permissions_for(ctx.guild.me).send_messages:
-            await sys_chan.send(
-                'Hello {}! I am here to take names and drink coffee, but I am all out of coffee. Please '
-                'wait while I get a refill.'.format(ctx.guild.name))
-        else:
-            await general.send('Hello {}! I am here to take names and drink coffee, but I am all out of coffee. Please '
-                               'wait while I get a refill.'.format(ctx.guild.name))
+    @is_bot_developer()
+    async def reset(self, ctx):
+        guild = ctx.guild
+        sys_chan = guild.system_channel
 
         # Add guild
-        guild_info = { 'guild_id': ctx.guild.id, 'name': ctx.guild.name }
+        guild_info = { 'guild_id': guild.id, 'name': guild.name }
         response = rh.add_guild(guild_info)
 
         if response.status_code != 200:
@@ -41,21 +33,14 @@ class AdminCommands(commands.Cog):
             await sys_chan.send('I\'m now in business! Time to start collecting names')
 
         # Add members
-        response = rh.add_member(ctx.guild.id, ctx.guild.members)
+        response = rh.add_member(guild.id, guild.members)
 
         if response == 200:
             await sys_chan.send(
-                'Names have been collected, eyeglasses have been cleaned, and bunnies have been killed. Carry on')
-
-    @setup.error
-    async def setup_error(self, ctx, error):
-        if isinstance(error, commands.NoPrivateMessage):
-            pass
-        elif isinstance(error, commands.MissingPermissions):
-            if ctx.guild is not None:
-                await ctx.guild.system_channel.send(f'Hey {ctx.message.author.mention}, this is an admin-only command.')
+                'Names have been collected, eyeglasses have been cleaned, and bunnies have been killed. Carry on.')
 
     @commands.command()
+    @commands.has_guild_permissions(administrator = True)
     async def set(self, ctx):
         # Controls the functionality of the bot per guild.
         settings = {
@@ -63,6 +48,11 @@ class AdminCommands(commands.Cog):
             'allowed_idle_time': [1, 0, 0, 0, 0],  # Months, weeks, days, hours, minutes
         }
         pass
+
+    @set.error
+    async def set_error(self, ctx, error):
+        if isinstance(error, commands.MissingPermissions):
+            await ctx.reply(f'Unfortunately, you do not have the required permissions to perform this command.')
 
     @commands.command()
     @commands.has_guild_permissions(kick_members = True)
@@ -85,8 +75,8 @@ class AdminCommands(commands.Cog):
             await ctx.reply('That member was not found. Check spelling and try again. The name is case-sensitive '
                             'and may be easier to  just @ (mention) the user in question.')
 
-        elif isinstance(error, commands.MissingAnyRole):
-            await ctx.reply('Unfortunately, you do not have the required role to perform this command.')
+        elif isinstance(error, commands.MissingPermissions):
+            await ctx.reply(f'Unfortunately, you do not have the required permissions to perform this command.')
 
     @commands.command()
     @is_bot_developer()
@@ -104,7 +94,20 @@ class AdminCommands(commands.Cog):
     async def reload_error(self, ctx, error):
 
         if isinstance(error, commands.CheckFailure):
-            await ctx.reply('This is a command reserved for the developer.')
+            await ctx.reply('Sorry, but this is a command reserved for the developer.')
+
+    @commands.command()
+    @commands.has_guild_permissions(administrator = True)
+    async def baseline(self, ctx):
+        # To be performed automatically, but can also be done manually in the same way setup is done.
+        # This is to establish a baseline for the server.
+        # For message in messages, look for last sent message by each member in the guild and update last_activity_ts.
+        pass
+
+    @baseline.error
+    async def backlog_error(self, ctx, error):
+        if isinstance(error, commands.MissingPermissions):
+            await ctx.reply('Unfortunately, you do not have the required permissions to perform this command.')
 
 
 def setup(bot):
