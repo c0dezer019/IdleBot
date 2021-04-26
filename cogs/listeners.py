@@ -21,21 +21,6 @@ class Listeners(commands.Cog):
         await self.bot.change_presence(activity = Game('Cops and Robbers'))
 
     @commands.Cog.listener()
-    async def on_guild_join(self, guild):
-        general = find(lambda x: x.name == 'general', guild.text_channels)
-        sys_chan = guild.system_channel
-
-        if sys_chan and sys_chan.permissions_for(guild.me).send_messages:
-            await sys_chan.send(
-                'Hello {}! I am here to take names and drink coffee, but I am all out of coffee. Please '
-                'wait while I get a refill.'.format(guild.name))
-        else:
-            await general.send('Hello {}! I am here to take names and drink coffee, but I am all out of coffee. Please '
-                               'wait while I get a refill.'.format(guild.name))
-
-        await sys_chan.send('?setup')
-
-    @commands.Cog.listener()
     async def on_member_join(self, member):
         chan_index = self.bot.guilds.index(member.guild)
 
