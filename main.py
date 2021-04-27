@@ -22,7 +22,7 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 bot = commands.Bot(command_prefix = '?', description = description, intents = intents)
-extensions = ['cogs.admin_cmds', 'cogs.listeners', 'cogs.setup', 'cogs.user_cmds']
+extensions = ['cogs.admin_cmds', 'cogs.dev_cmds', 'cogs.listeners', 'cogs.setup', 'cogs.user_cmds']
 
 
 @bot.event
