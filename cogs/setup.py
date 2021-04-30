@@ -1,3 +1,4 @@
+import discord
 from discord.ext import commands
 from discord.utils import find
 import utility.request_handler as rh
@@ -8,7 +9,7 @@ class Setup(commands.Cog):
         self.bot = bot
 
     @commands.Cog.listener()
-    async def on_guild_join(self, guild):
+    async def on_guild_join(self, guild: discord.Guild):
         general = find(lambda x: x.name == 'general', guild.text_channels)
         sys_chan = guild.system_channel
 
@@ -22,7 +23,7 @@ class Setup(commands.Cog):
 
     @commands.Cog.listener('on_guild_join')
     @commands.bot_has_guild_permissions(administrator = True)
-    async def setup(self, guild):
+    async def setup(self, guild: discord.Guild):
         sys_chan = guild.system_channel
 
         # Add guild

@@ -1,8 +1,11 @@
 from datetime import datetime
+
+import discord
 from discord import Game
 from discord.ext import commands
 from discord.utils import find
 from pytz import timezone
+from typing import Dict
 import utility.request_handler as rh
 import json
 
@@ -31,7 +34,7 @@ class Listeners(commands.Cog):
         await self.bot.change_presence(activity = Game('Cops and Robbers'))
 
     @commands.Cog.listener()
-    async def on_member_join(self, member):
+    async def on_member_join(self, member: discord.Member):
         chan_index = self.bot.guilds.index(member.guild)
 
         general = find(lambda x: x.name == 'general', member.guild.text_channels)
@@ -46,13 +49,13 @@ class Listeners(commands.Cog):
             await general.send('Welcome {0.mention}!'.format(member))
 
         try:
-            rh.add_member(member.guild.id, list(member))
+            rh.add_member(member.guild.id, member)
 
         except Exception:
             raise
 
     @commands.Cog.listener()
-    async def on_message(self, message):
+    async def on_message(self, message: discord.Message):
         if message.guild is not None:
             if message.content.startswith(self.ignore_list):
                 return
@@ -87,7 +90,7 @@ class Listeners(commands.Cog):
                 'that I am in.')
 
     @commands.Cog.listener()
-    async def on_member_update(self, before, after):
+    async def on_member_update(self, before: discord.Member, after: discord.Member):
         try:
             if before.nickname != after.nickname:
                 rh.update_member(after.id, **{'nickname': after.nick})
@@ -98,10 +101,10 @@ class Listeners(commands.Cog):
             raise
 
     @commands.Cog.listener()
-    async def on_user_update(self, before, after):
+    async def on_user_update(self, before: discord.User, after: discord.User):
         try:
-            if before.username != after.username or before.discriminator != after.discriminator:
-                username = f'{after.username}#{after.discriminator}'
+            if before.name != after.name or before.discriminator != after.discriminator:
+                username = f'{after.name}#{after.discriminator}'
 
                 rh.update_member(after.id, **{'username': username})
             else:
@@ -111,7 +114,7 @@ class Listeners(commands.Cog):
             raise
 
     @commands.Cog.listener()
-    async def on_guild_update(self, before, after):
+    async def on_guild_update(self, before: discord.Guild, after: discord.Guild):
         pass
 
 

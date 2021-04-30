@@ -6,7 +6,7 @@ from pytz import timezone
 # last active in voice comms.
 
 
-def check_idle_time(ts):
+def check_idle_time(ts: datetime):
     central_tz = timezone('US/Central')
     current_time = datetime.now(central_tz)
     difference = current_time - ts

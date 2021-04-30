@@ -1,5 +1,6 @@
 from datetime import datetime
-from discord import Member
+
+import discord
 from discord.ext import commands
 from discord.utils import find
 from utility.helpers import check_idle_time
@@ -12,7 +13,7 @@ class UserCommands(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    async def check(self, ctx, member: Member):
+    async def check(self, ctx: commands.Context, member: discord.Member):
         command = ctx.message.content.split(' ')[1]
 
         if not command.startswith('<@!'):
@@ -26,7 +27,7 @@ class UserCommands(commands.Cog):
         else:
             response = rh.get_guild(ctx.message.guild.id)
 
-        response_as_dict = response.json()
+        response_as_dict = response.json()['member' if member else 'guild']
         iso_timestamp = response_as_dict['last_activity_ts']
         status = response_as_dict['status']
         timestamp = datetime.fromisoformat(iso_timestamp)
@@ -59,7 +60,7 @@ class UserCommands(commands.Cog):
                 await general.send(response_str)
 
     @check.error
-    async def check_error_handler(self, ctx, error):
+    async def check_error_handler(self, ctx: commands.Context, error):
         if isinstance(error, commands.MemberNotFound):
             await ctx.reply('That member was not found.')
 
