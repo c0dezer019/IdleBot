@@ -1,6 +1,6 @@
 .idea
 .env
 .ssh
-.test
+test.*
 error_log*.txt
 /utility/__pycache__
