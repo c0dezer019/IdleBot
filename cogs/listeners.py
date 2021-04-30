@@ -4,12 +4,14 @@ from discord.ext import commands
 from discord.utils import find
 from pytz import timezone
 import utility.request_handler as rh
+import json
 
 
 class Listeners(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.ignore_list = ('?ping', '?reset', '?check')
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -17,6 +19,14 @@ class Listeners(commands.Cog):
 
         for guild in self.bot.guilds:
             print(f'{guild.name}(id: {guild.id})')
+
+        guilds = rh.get_guild().json()
+
+        with open('utility/store.json', 'r+') as file:
+            data = json.load(file)
+            data.update(guilds)
+            file.seek(0)
+            json.dump(data, file, indent = 3)
 
         await self.bot.change_presence(activity = Game('Cops and Robbers'))
 
@@ -36,7 +46,7 @@ class Listeners(commands.Cog):
             await general.send('Welcome {0.mention}!'.format(member))
 
         try:
-            rh.add_member(list(member))
+            rh.add_member(member.guild.id, list(member))
 
         except Exception:
             raise
@@ -44,10 +54,7 @@ class Listeners(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.guild is not None:
-            if message.content.startswith('?ping') \
-                    or message.content.startswith('?setup') \
-                    or message.content.startswith('?check'):
-
+            if message.content.startswith(self.ignore_list):
                 return
 
             member_id = message.author.id
@@ -78,6 +85,34 @@ class Listeners(commands.Cog):
             await message.channel.send(
                 'Sorry, but I do not respond to DM\'s other than with this message. Try using me in a guild '
                 'that I am in.')
+
+    @commands.Cog.listener()
+    async def on_member_update(self, before, after):
+        try:
+            if before.nickname != after.nickname:
+                rh.update_member(after.id, **{'nickname': after.nick})
+            else:
+                pass
+
+        except AttributeError:
+            raise
+
+    @commands.Cog.listener()
+    async def on_user_update(self, before, after):
+        try:
+            if before.username != after.username or before.discriminator != after.discriminator:
+                username = f'{after.username}#{after.discriminator}'
+
+                rh.update_member(after.id, **{'username': username})
+            else:
+                pass
+
+        except Exception:
+            raise
+
+    @commands.Cog.listener()
+    async def on_guild_update(self, before, after):
+        pass
 
 
 def setup(bot):
