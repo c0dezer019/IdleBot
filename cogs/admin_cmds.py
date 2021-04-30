@@ -48,24 +48,6 @@ class AdminCommands(commands.Cog):
             await ctx.reply(f'Unfortunately, you do not have the required permissions to perform this command.')
 
     @commands.command()
-    @is_bot_developer()
-    async def reload(self, ctx, cog):
-        # bot_guilds = ctx.bot.guilds
-
-        await ctx.message.guild.system_channel.send('Cog reloaded.')
-
-        # for guild in bot_guilds:
-            # await guild.system_channel.send('Hello, I have been updated. Use ?changelog to see what\'s new!')
-
-        await ctx.bot.reload_extension(f'cogs.{cog}')
-
-    @reload.error
-    async def reload_error(self, ctx, error):
-
-        if isinstance(error, commands.CheckFailure):
-            await ctx.reply('Sorry, but this is a command reserved for the developer.')
-
-    @commands.command()
     @commands.has_guild_permissions(administrator = True)
     async def baseline(self, ctx):
         # To be performed automatically, but can also be done manually in the same way setup is done.

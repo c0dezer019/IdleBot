@@ -1,4 +1,5 @@
 from discord.ext import commands
+from typing import Optional
 import utility.request_handler as rh
 
 
@@ -37,9 +38,27 @@ class DevCommands(commands.Cog):
                 'Names have been collected, eyeglasses have been cleaned, and bunnies have been killed. Carry on.')
 
     @commands.command()
-    @is_bot_developer
+    @is_bot_developer()
     async def delete(self, ctx, obj_type, obj_id):
         pass
+
+    @commands.command()
+    @is_bot_developer()
+    async def reload(self, ctx, cog: Optional[str]):
+        # bot_guilds = ctx.bot.guilds
+
+        await ctx.message.guild.system_channel.send('Cog reloaded.')
+
+        # for guild in bot_guilds:
+        # await guild.system_channel.send('Hello, I have been updated. Use ?changelog to see what\'s new!')
+
+        await ctx.bot.reload_extension(f'cogs.{cog}')
+
+    @reload.error
+    async def reload_error(self, ctx, error):
+
+        if isinstance(error, commands.CheckFailure):
+            await ctx.reply('Sorry, but this is a command reserved for the developer.')
 
 
 def setup(bot):
