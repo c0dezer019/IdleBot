@@ -1,0 +1,59 @@
+{
+   "code": 200,
+   "errors": null,
+   "guilds": [
+      {
+         "date_added": "2021-04-30T02:21:19.897649-05:00",
+         "guild_id": 820891105322074113,
+         "id": "1",
+         "last_activity": "None",
+         "last_activity_loc": "None",
+         "last_activity_ts": "1969-12-31T18:00:00-06:00",
+         "members": [
+            {
+               "date_added": "2021-04-30T02:21:19.893588-05:00",
+               "last_activity": "None",
+               "last_activity_loc": "None",
+               "last_activity_ts": "1969-12-31T18:00:00-06:00",
+               "member_id": 820795907179020298,
+               "nickname": null,
+               "status": "new",
+               "username": "IdleBot#1587"
+            },
+            {
+               "date_added": "2021-04-30T02:21:19.893588-05:00",
+               "last_activity": "None",
+               "last_activity_loc": "None",
+               "last_activity_ts": "1969-12-31T18:00:00-06:00",
+               "member_id": 102588778232705024,
+               "nickname": "LoneRanger",
+               "status": "new",
+               "username": "RangerBob#4224"
+            },
+            {
+               "date_added": "2021-04-30T02:21:19.893588-05:00",
+               "last_activity": "None",
+               "last_activity_loc": "None",
+               "last_activity_ts": "1969-12-31T18:00:00-06:00",
+               "member_id": 263455533418151936,
+               "nickname": null,
+               "status": "new",
+               "username": "Kuzzif#8121"
+            },
+            {
+               "date_added": "2021-04-30T02:21:19.893588-05:00",
+               "last_activity": "None",
+               "last_activity_loc": "None",
+               "last_activity_ts": "1969-12-31T18:00:00-06:00",
+               "member_id": 266347685378916352,
+               "nickname": "Horn",
+               "status": "new",
+               "username": "AgentM2#6045"
+            }
+         ],
+         "name": "c0dezer019's server",
+         "settings": {},
+         "status": "new"
+      }
+   ]
+}
