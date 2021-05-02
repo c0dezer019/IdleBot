@@ -10,6 +10,7 @@ trio = "*"
 "discord.py" = "*"
 numpy = "*"
 requests = "*"
+arrow = "*"
 
 [dev-packages]
 
