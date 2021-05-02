@@ -1,6 +1,6 @@
 from discord.ext import commands
 from dotenv import load_dotenv
-from logging.handlers import RotatingFileHandler
+from utility.helpers import log
 import discord
 import logging
 import traceback
@@ -14,21 +14,14 @@ intents = discord.Intents.default()
 intents.members = True
 intents.guilds = True
 
-logger = logging.getLogger('Error Log')
-logger.setLevel(logging.ERROR)
-handler = RotatingFileHandler('error_log.txt', maxBytes = 524288, backupCount = 5)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-
 bot = commands.Bot(command_prefix = '?', description = description, intents = intents)
 extensions = ['cogs.admin_cmds', 'cogs.dev_cmds', 'cogs.listeners', 'cogs.setup', 'cogs.user_cmds']
+logger = log(logging.ERROR, 'error_log.txt')
 
 
 @bot.event
 async def on_error(event, *args, **kwargs):
     message = args[0]
-
     logger.error(f'Error happened within {event}:\n{traceback.format_exc()}',)
 
     if message.guild is not None:
