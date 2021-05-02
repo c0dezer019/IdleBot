@@ -1,6 +1,18 @@
 from datetime import datetime, timedelta
+from logging.handlers import RotatingFileHandler
 from pytz import timezone
+import logging
 
+
+def log(level: int, log_file: str):
+    logger = logging.getLogger('Bot Log')
+    logger.setLevel(level)
+    handler = RotatingFileHandler(f'../{log_file}', maxBytes = 500000, backupCount = 5)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
+    return logger
 
 # measures the amount of idle time between now and then (the given timestamp, which should be user's last message or
 # last active in voice comms.
