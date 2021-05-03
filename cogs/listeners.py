@@ -5,16 +5,15 @@ from discord import Game
 from discord.ext import commands
 from discord.utils import find
 from pytz import timezone
-from typing import Dict
 import utility.request_handler as rh
 import json
 
 
 class Listeners(commands.Cog):
 
-    def __init__(self, bot):
-        self.bot = bot
-        self.ignore_list = ('?ping', '?reset', '?check')
+    def __init__(self, bot: discord.Client):
+        self.bot: discord.Client = bot
+        self.ignore_list: tuple = ('?ping', '?reset', '?check')
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -25,7 +24,7 @@ class Listeners(commands.Cog):
 
         guilds = rh.get_guild().json()
 
-        with open('utility/store.json', 'r+') as file:
+        with open('utility/storeTest.json', 'r+') as file:
             data = json.load(file)
             data.update(guilds)
             file.seek(0)
@@ -35,16 +34,13 @@ class Listeners(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
-        chan_index = self.bot.guilds.index(member.guild)
+        chan_index: int = self.bot.guilds.index(member.guild)
 
-        general = find(lambda x: x.name == 'general', member.guild.text_channels)
-        sys_chan = member.guild.system_channel
-
-        await sys_chan.send("Hello {0.mention}!".format(member))
-        await general.send('Welcome to hell, {0.mention}!'.format(member))
+        general: discord.TextChannel = find(lambda x: x.name == 'general', member.guild.text_channels)
+        sys_chan: discord.TextChannel = member.guild.system_channel
 
         if sys_chan and sys_chan.permissions_for(self.bot.guilds[chan_index].me).send_messages:
-            await sys_chan.send('Welcome {0.mention}.'.format(member))
+            await sys_chan.send('Welcome {0.mention}!'.format(member))
         else:
             await general.send('Welcome {0.mention}!'.format(member))
 
@@ -92,7 +88,7 @@ class Listeners(commands.Cog):
     @commands.Cog.listener()
     async def on_member_update(self, before: discord.Member, after: discord.Member):
         try:
-            if before.nickname != after.nickname:
+            if before.nick != after.nick:
                 rh.update_member(after.id, **{'nickname': after.nick})
             else:
                 pass
@@ -115,7 +111,13 @@ class Listeners(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_update(self, before: discord.Guild, after: discord.Guild):
-        pass
+        try:
+            if before.name != after.name:
+                rh.update_guild(after.id, **{'name': after.name})
+            else:
+                pass
+        except Exception:
+            raise
 
 
 def setup(bot):
