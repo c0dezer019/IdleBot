@@ -1,6 +1,7 @@
 .idea
 .env
 .ssh
+storeTest.json
 test.*
 error_log*.txt
 /utility/__pycache__
