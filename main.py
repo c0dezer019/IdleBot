@@ -1,6 +1,6 @@
 from discord.ext import commands
 from dotenv import load_dotenv
-from utility.helpers import log
+from logging.handlers import RotatingFileHandler
 import discord
 import logging
 import traceback
@@ -16,7 +16,12 @@ intents.guilds = True
 
 bot = commands.Bot(command_prefix = '?', description = description, intents = intents)
 extensions = ['cogs.admin_cmds', 'cogs.dev_cmds', 'cogs.listeners', 'cogs.setup', 'cogs.user_cmds']
-logger = log(logging.ERROR, 'error_log.txt')
+logger = logging.getLogger('Bot Log')
+logger.setLevel(logging.ERROR)
+handler = RotatingFileHandler(f'error_log.txt', maxBytes = 500000, backupCount = 5)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 
 @bot.event
