@@ -1,6 +1,8 @@
-import discord
-from typing import AnyStr, Dict, Optional, SupportsInt, TypedDict
+import logging
+from typing import Dict, Optional, TypedDict
 from requests import Response
+from time import perf_counter_ns
+import discord
 import requests
 
 api_url_dev = 'http://127.0.0.1:5000/bot/graphql'
@@ -13,6 +15,7 @@ class Query(TypedDict):
 
 
 def add_guild(guild_info: Dict):
+    func_start: int = perf_counter_ns()
     payload: Query = {
         'query': '''
             query guild ($guild_id: BigInt!) {
@@ -67,10 +70,14 @@ def add_guild(guild_info: Dict):
         }
 
         response: Response = requests.post(api_url_dev, json = payload)
+        func_end = perf_counter_ns()
+        logger.info(f'')
 
         return response
     else:
-        return guild
+        func_end: int = perf_counter_ns()
+
+        pass
 
 
 def add_member(guild_id: int, member: discord.Member):
