@@ -1,12 +1,10 @@
-from datetime import datetime
-
-import discord
 from discord import Game
 from discord.ext import commands
-from discord.utils import find
-from pytz import timezone
+from discord.utils import get
+from typing import Dict
+import arrow
+import discord
 import utility.request_handler as rh
-import json
 
 
 class Listeners(commands.Cog):
@@ -22,21 +20,13 @@ class Listeners(commands.Cog):
         for guild in self.bot.guilds:
             print(f'{guild.name}(id: {guild.id})')
 
-        guilds = rh.get_guild().json()
-
-        with open('utility/storeTest.json', 'r+') as file:
-            data = json.load(file)
-            data.update(guilds)
-            file.seek(0)
-            json.dump(data, file, indent = 3)
-
         await self.bot.change_presence(activity = Game('Cops and Robbers'))
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
         chan_index: int = self.bot.guilds.index(member.guild)
 
-        general: discord.TextChannel = find(lambda x: x.name == 'general', member.guild.text_channels)
+        general: discord.TextChannel = get(member.guild.channels, name = 'general')
         sys_chan: discord.TextChannel = member.guild.system_channel
 
         if sys_chan and sys_chan.permissions_for(self.bot.guilds[chan_index].me).send_messages:
@@ -58,12 +48,10 @@ class Listeners(commands.Cog):
 
             member_id = message.author.id
             guild_id = message.author.guild.id
-            tz = timezone('US/Central')
-            local_dt = datetime.now(tz)
             data_to_change = {
                 'last_activity': message.channel.type[0],
                 'last_activity_loc': message.channel.name,
-                'last_activity_ts': local_dt.isoformat(),
+                'last_activity_ts': arrow.now('US/Central').isoformat(),
                 'status': 'active',
             }
 
@@ -80,6 +68,7 @@ class Listeners(commands.Cog):
 
                 except ValueError:
                     raise
+
         elif not message.guild and str(message.channel.type) == 'private' and not message.author.bot:
             await message.channel.send(
                 'Sorry, but I do not respond to DM\'s other than with this message. Try using me in a guild '
@@ -105,6 +94,21 @@ class Listeners(commands.Cog):
                 rh.update_member(after.id, **{'username': username})
             else:
                 pass
+
+        except Exception:
+            raise
+
+    @commands.Cog.listener()
+    async def on_voice_state_update(self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
+        try:
+            payload: Dict = {
+                'last_activity': 'voice',
+                'last_activity_loc': str(after.channel),
+                'last_activity_ts': arrow.now('US/Central').isoformat()
+            }
+
+            rh.update_member(member.id, **payload)
+            rh.update_guild(member.guild.id, **payload)
 
         except Exception:
             raise
