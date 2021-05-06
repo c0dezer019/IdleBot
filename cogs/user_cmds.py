@@ -1,10 +1,12 @@
-import discord
-from datetime import datetime
+import datetime
+
 from discord.ext import commands
 from discord.utils import find
 from typing import Dict
 from requests import Response
 from utility.helpers import check_idle_time
+import arrow
+import discord
 import utility.request_handler as rh
 
 
@@ -44,7 +46,7 @@ class UserCommands(commands.Cog):
         response_as_dict: Dict = response.json()['member' if member else 'guild']
         iso_timestamp: str = response_as_dict['last_activity_ts']
         status: str = response_as_dict['status']
-        timestamp: datetime = datetime.fromisoformat(iso_timestamp)
+        timestamp: datetime.datetime = arrow.get(iso_timestamp).datetime
         get_idle_time: Dict = check_idle_time(timestamp)
 
         if status != 'active':
