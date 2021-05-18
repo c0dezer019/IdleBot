@@ -1,5 +1,4 @@
 from discord.ext import commands
-from main import logger
 from typing import Optional
 import utility.request_handler as rh
 
