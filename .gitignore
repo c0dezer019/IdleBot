@@ -1,7 +1,7 @@
 .idea
 .env
 .ssh
-storeTest.json
+utility/storeTest.json
 test.*
 bot_log*.txt
 /utility/__pycache__
