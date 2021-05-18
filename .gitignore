@@ -3,5 +3,5 @@
 .ssh
 utility/storeTest.json
 test.*
-bot_log*.txt
+bot_log.txt
 /utility/__pycache__
