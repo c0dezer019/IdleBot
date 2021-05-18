@@ -6,14 +6,14 @@ import logging
 logger = logging.getLogger('IdleBot Logger')
 
 
-def calculate_average_idle_time():
+def calculate_average_idle_time() -> int:
     pass
 
 
 # measures the amount of idle time between now and then (the given timestamp, which should be user's last message or
 # last active in voice comms.
 
-def check_idle_time(ts: datetime.datetime):
+def check_idle_time(ts: datetime.datetime) -> dict:
 
     current_time = arrow.now('US/Central').datetime
     difference = current_time - ts
