@@ -1,9 +1,14 @@
+import datetime
+
 from discord import Game
 from discord.ext import commands
 from discord.utils import get
 from typing import Dict
+from utility.helpers import check_idle_time
 import arrow
 import discord
+import json
+import logging
 import utility.request_handler as rh
 
 
@@ -19,6 +24,8 @@ class Listeners(commands.Cog):
 
         for guild in self.bot.guilds:
             print(f'{guild.name}(id: {guild.id})')
+
+        print()  # An empty line for formatting.
 
         await self.bot.change_presence(activity = Game('Cops and Robbers'))
 
@@ -46,28 +53,28 @@ class Listeners(commands.Cog):
             if message.content.startswith(self.ignore_list):
                 return
 
-            member_id = message.author.id
-            guild_id = message.author.guild.id
-            data_to_change = {
-                'last_activity': message.channel.type[0],
-                'last_activity_loc': message.channel.name,
-                'last_activity_ts': arrow.now('US/Central').isoformat(),
-                'status': 'active',
-            }
-
             if not message.author.bot:
-                try:
-                    rh.update_member(member_id, **data_to_change)
-                    rh.update_guild(guild_id, **data_to_change)
+                dt: arrow.Arrow = arrow.now('US/Central')
+                get_idle_time: dict = check_idle_time(dt.datetime)
+                with open('utility/storeTest.json', 'r') as file:
+                    data: dict = json.load(file)
 
-                except AttributeError:
-                    raise
+                guild_index: int = next((index for (index, d) in enumerate(data['guilds'])
+                                         if d['guild_id'] == message.guild.id), None)
+                member_index: int = next((index for (index, d) in enumerate(data['guilds'][guild_index]['members'])
+                                          if d['member_id'] == message.author.id), None)
+                data: dict = {
+                    'guild': data['guilds'][guild_index],
+                    'member': data['guilds'][guild_index]['members'][member_index]
+                }
 
-                except TypeError:
-                    raise
+                for k in data.keys():
+                    k['idle_times'].append(get_idle_time)  # History of times idle.
+                    k['idle_time_avg'] = sum(k['idle_times'])/len(k['idle_times'])  # Current idle time averages
+                    k['idle_time_avgs'].append(k['idle_time_avg'])  # Past averages
 
-                except ValueError:
-                    raise
+                    if len(k['idle_times']) > 50:
+                        k['idle_times'].remove(k['idle_times'][0])
 
         elif not message.guild and str(message.channel.type) == 'private' and not message.author.bot:
             await message.channel.send(
