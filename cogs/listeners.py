@@ -27,6 +27,11 @@ class Listeners(commands.Cog):
 
         print()  # An empty line for formatting.
 
+        guilds = rh.get_guild().json()['guilds']
+
+        with open('utility/storeTest.json', 'w') as file:
+            json.dump(guilds, file, indent = 3)
+
         await self.bot.change_presence(activity = Game('Cops and Robbers'))
 
     @commands.Cog.listener()
