@@ -56,12 +56,13 @@ class Listeners(commands.Cog):
             if not message.author.bot:
                 dt: arrow.Arrow = arrow.now('US/Central')
                 get_idle_time: dict = check_idle_time(dt.datetime)
-                with open('utility/storeTest.json', 'r') as file:
-                    data: dict = json.load(file)
 
-                guild_index: int = next((index for (index, d) in enumerate(data['guilds'])
+                with open('utility/storeTest.json', 'r') as file:
+                    data: Dict = json.load(file)
+
+                guild_index: int = next((index for (index, d) in enumerate(data)
                                          if d['guild_id'] == message.guild.id), None)
-                member_index: int = next((index for (index, d) in enumerate(data['guilds'][guild_index]['members'])
+                member_index: int = next((index for (index, d) in enumerate(data[guild_index]['members'])
                                           if d['member_id'] == message.author.id), None)
                 data: dict = {
                     'guild': data['guilds'][guild_index],
@@ -85,7 +86,7 @@ class Listeners(commands.Cog):
     async def on_member_update(self, before: discord.Member, after: discord.Member):
         try:
             if before.nick != after.nick:
-                rh.update_member(after.id, **{'nickname': after.nick})
+                rh.update_member(after.id, **{ 'nickname': after.nick })
             else:
                 pass
 
@@ -98,7 +99,7 @@ class Listeners(commands.Cog):
             if before.name != after.name or before.discriminator != after.discriminator:
                 username = f'{after.name}#{after.discriminator}'
 
-                rh.update_member(after.id, **{'username': username})
+                rh.update_member(after.id, **{ 'username': username })
             else:
                 pass
 
@@ -106,25 +107,22 @@ class Listeners(commands.Cog):
             raise
 
     @commands.Cog.listener()
-    async def on_voice_state_update(self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
-        try:
-            payload: Dict = {
-                'last_activity': 'voice',
-                'last_activity_loc': str(after.channel),
-                'last_activity_ts': arrow.now('US/Central').isoformat()
-            }
+    async def on_voice_state_update(self, member: discord.Member, before: discord.VoiceState,
+                                    after: discord.VoiceState):
 
-            rh.update_member(member.id, **payload)
-            rh.update_guild(member.guild.id, **payload)
+        with open('utility/storeTest.json', 'rw') as file:
+            data: Dict = json.load(file)
 
-        except Exception:
-            raise
+        guild_index: int = next((index for (index, d) in enumerate(data)
+                                 if d['guild_id'] == member.guild.id), None)
+        member_index: int = next((index for (index, d) in enumerate(data[guild_index]['members'])
+                                  if d['member_id'] == member.id), None)
 
     @commands.Cog.listener()
     async def on_guild_update(self, before: discord.Guild, after: discord.Guild):
         try:
             if before.name != after.name:
-                rh.update_guild(after.id, **{'name': after.name})
+                rh.update_guild(after.id, **{ 'name': after.name })
             else:
                 pass
         except Exception:
