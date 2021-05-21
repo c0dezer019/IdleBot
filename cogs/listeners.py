@@ -1,5 +1,3 @@
-import datetime
-
 from discord import Game
 from discord.ext import commands
 from discord.utils import get
