@@ -16,6 +16,7 @@ description = '''Got idle?'''
 intents = discord.Intents.default()
 intents.members = True
 intents.guilds = True
+intents.message_content = True
 
 bot = commands.Bot(command_prefix = '?', description = description, intents = intents)
 extensions = ['cogs.admin_cmds', 'cogs.dev_cmds', 'cogs.listeners', 'cogs.setup', 'cogs.user_cmds']

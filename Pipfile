@@ -4,16 +4,14 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-python-dotenv = "*"
-pytz = "*"
-trio = "*"
-"discord.py" = "*"
-numpy = "*"
-requests = "*"
 arrow = "*"
-pynacl = "*"
+"discord.py" = "*"
+asyncpg = "*"
+requests = "*"
+python-dotenv = "*"
 
 [dev-packages]
+autopep8 = "*"
 
 [requires]
-python_version = "3.9"
+python_version = "3.10"
