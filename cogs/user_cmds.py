@@ -32,7 +32,7 @@ class UserCommands(commands.Cog):
     async def check(self, ctx: commands.Context, member: discord.Member):
         command = ctx.message.content.split(' ')[1]
 
-        if not command.startswith('<@!'):
+        if not command.startswith('!'):
             await ctx.reply(f'Hey {ctx.message.author.mention}, I\'ll give you a response but you may not like the '
                             'results. Please use @mention for the user next time to ensure better results.\n\nTip: Users '
                             'can have the same nickname and same display name (the alphanumeric part before the '

@@ -1,13 +1,7 @@
 from discord.ext import commands
 from typing import Optional
+from utility.decorators import is_bot_developer
 import utility.request_handler as rh
-
-
-def is_bot_developer():
-    def predicate(ctx: commands.Context):
-        return ctx.message.author.id == 102588778232705024
-
-    return commands.check(predicate)
 
 
 class DevCommands(commands.Cog):
