@@ -1,22 +1,21 @@
-from discord import Game
-from discord.ext import commands
+from discord import Member, TextChannel, Message, User, VoiceState, Guild, Game
+from discord.ext.commands import Bot, Cog
 from discord.utils import get
 from typing import Dict
 from utility.helpers import check_idle_time
 import arrow
-import discord
 import json
 import logging
 import utility.request_handler as rh
 
 
-class Listeners(commands.Cog):
+class Listeners(Cog):
 
-    def __init__(self, bot: discord.Client):
-        self.bot: discord.Client = bot
+    def __init__(self, bot: Bot):
+        self.bot: Bot = bot
         self.ignore_list: tuple = ('?ping', '?reset', '?check')
 
-    @commands.Cog.listener()
+    @Cog.listener()
     async def on_ready(self):
         print(f'{self.bot.user} is connected to the following guilds:')
 
@@ -32,12 +31,12 @@ class Listeners(commands.Cog):
 
         await self.bot.change_presence(activity = Game('Cops and Robbers'))
 
-    @commands.Cog.listener()
-    async def on_member_join(self, member: discord.Member):
+    @Cog.listener()
+    async def on_member_join(self, member: Member):
         chan_index: int = self.bot.guilds.index(member.guild)
 
-        general: discord.TextChannel = get(member.guild.channels, name = 'general')
-        sys_chan: discord.TextChannel = member.guild.system_channel
+        general: TextChannel = get(member.guild.channels, name = 'general')
+        sys_chan: TextChannel = member.guild.system_channel
 
         if sys_chan and sys_chan.permissions_for(self.bot.guilds[chan_index].me).send_messages:
             await sys_chan.send('Welcome {0.mention}!'.format(member))
@@ -50,8 +49,8 @@ class Listeners(commands.Cog):
         except Exception:
             raise
 
-    @commands.Cog.listener()
-    async def on_message(self, message: discord.Message):
+    @Cog.listener()
+    async def on_message(self, message: Message):
         if message.guild is not None:
             if message.content.startswith(self.ignore_list):
                 return
@@ -85,8 +84,8 @@ class Listeners(commands.Cog):
                 'Sorry, but I do not respond to DM\'s other than with this message. Try using me in a guild '
                 'that I am in.')
 
-    @commands.Cog.listener()
-    async def on_member_update(self, before: discord.Member, after: discord.Member):
+    @Cog.listener()
+    async def on_member_update(self, before: Member, after: Member):
         try:
             if before.nick != after.nick:
                 rh.update_member(after.id, **{ 'nickname': after.nick })
@@ -96,8 +95,8 @@ class Listeners(commands.Cog):
         except AttributeError:
             raise
 
-    @commands.Cog.listener()
-    async def on_user_update(self, before: discord.User, after: discord.User):
+    @Cog.listener()
+    async def on_user_update(self, before: User, after: User):
         try:
             if before.name != after.name or before.discriminator != after.discriminator:
                 username = f'{after.name}#{after.discriminator}'
@@ -109,9 +108,9 @@ class Listeners(commands.Cog):
         except Exception:
             raise
 
-    @commands.Cog.listener()
-    async def on_voice_state_update(self, member: discord.Member, before: discord.VoiceState,
-                                    after: discord.VoiceState):
+    @Cog.listener()
+    async def on_voice_state_update(self, member: Member, before: VoiceState,
+                                    after: VoiceState):
 
         with open('utility/storeTest.json', 'rw') as file:
             data: Dict = json.load(file)
@@ -121,8 +120,8 @@ class Listeners(commands.Cog):
         member_index: int = next((index for (index, d) in enumerate(data[guild_index]['members'])
                                   if d['member_id'] == member.id), None)
 
-    @commands.Cog.listener()
-    async def on_guild_update(self, before: discord.Guild, after: discord.Guild):
+    @Cog.listener()
+    async def on_guild_update(self, before: Guild, after: Guild):
         try:
             if before.name != after.name:
                 rh.update_guild(after.id, **{ 'name': after.name })

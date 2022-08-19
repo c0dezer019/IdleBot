@@ -1,15 +1,16 @@
-import discord
-from discord.ext import commands
+from discord import Guild
+from discord.ext.commands import Cog, bot_has_guild_permissions
+from discord.ext.commands import Bot
 from discord.utils import find
 import utility.request_handler as rh
 
 
-class Setup(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
+class Setup(Cog):
+    def __init__(self, bot: Bot):
+        self.bot: Bot = bot
 
-    @commands.Cog.listener()
-    async def on_guild_join(self, guild: discord.Guild):
+    @Cog.listener()
+    async def on_guild_join(self, guild: Guild):
         general = find(lambda x: x.name == 'general', guild.text_channels)
         sys_chan = guild.system_channel
 
@@ -21,9 +22,9 @@ class Setup(commands.Cog):
             await general.send('Hello {}! I am here to take names and drink coffee, but I am all out of coffee. Please '
                                'wait while I get a refill.'.format(guild.name))
 
-    @commands.Cog.listener('on_guild_join')
-    @commands.bot_has_guild_permissions(administrator = True)
-    async def setup(self, guild: discord.Guild):
+    @Cog.listener('on_guild_join')
+    @bot_has_guild_permissions(administrator = True)
+    async def setup(self, guild: Guild):
         sys_chan = guild.system_channel
 
         # Add guild

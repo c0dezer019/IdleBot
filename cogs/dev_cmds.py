@@ -1,17 +1,17 @@
-from discord.ext import commands
+from discord.ext.commands import command, Cog, Context, CheckFailure
 from typing import Optional
 from utility.decorators import is_bot_developer
 import utility.request_handler as rh
 
 
-class DevCommands(commands.Cog):
+class DevCommands(Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(hidden = True, help = 'If for some reason the need to start fresh occurs, this initiates the '
+    @command(hidden = True, help = 'If for some reason the need to start fresh occurs, this initiates the '
                                             'on_guild_join() procedures without having to kick and re-invite bot.')
     @is_bot_developer()
-    async def reset(self, ctx: commands.Context):
+    async def reset(self, ctx: Context):
         guild = ctx.guild
         sys_chan = guild.system_channel
 
@@ -33,16 +33,16 @@ class DevCommands(commands.Cog):
             await sys_chan.send(
                 'Names have been collected, eyeglasses have been cleaned, and bunnies have been killed. Carry on.')
 
-    @commands.command(hidden = True, help = 'Deletes things from the database in the event corresponding listeners '
-                                            'fail to do their jobs.')
+    @command(hidden = True, help = 'Deletes things from the database in the event corresponding listeners '
+                                   'fail to do their jobs.')
     @is_bot_developer()
     async def delete(self, ctx, obj_type: str, obj_id: int):
         pass
 
-    @commands.command(hidden = True, help = 'Loads, reloads, or unloads an extension (cog). Only the developer can use'
+    @command(hidden = True, help = 'Loads, reloads, or unloads an extension (cog). Only the developer can use'
                                             'this command.')
     @is_bot_developer()
-    async def reload(self, ctx: commands.Context, cog: Optional[str]):
+    async def reload(self, ctx: Context, cog: Optional[str]):
         # bot_guilds = ctx.bot.guilds
 
         await ctx.message.guild.system_channel.send('Cog reloaded.')
@@ -53,9 +53,9 @@ class DevCommands(commands.Cog):
         await ctx.bot.reload_extension(f'cogs.{cog}')
 
     @reload.error
-    async def reload_error(self, ctx: commands.Context, error):
+    async def reload_error(self, ctx: Context, error):
 
-        if isinstance(error, commands.CheckFailure):
+        if isinstance(error, CheckFailure):
             await ctx.reply('Sorry, but this is a command reserved for the developer.')
 
 

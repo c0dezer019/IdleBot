@@ -1,19 +1,19 @@
 import datetime
 
-from discord.ext import commands
+from discord import Member, TextChannel
+from discord.ext.commands import command, Cog, Bot, Context, MemberNotFound
 from discord.utils import find
 from typing import Dict
 from requests import Response
 from utility.helpers import check_idle_time
 import arrow
-import discord
 import utility.request_handler as rh
 
 
-class UserCommands(commands.Cog):
+class UserCommands(Cog):
 
-    def __init__(self, bot: discord.Client):
-        self.bot: discord.Client = bot
+    def __init__(self, bot: Bot):
+        self.bot: Bot = bot
 
     help_lib: Dict = {
         'check_brief': 'Returns the idle time of a specified user, or the guild if no user is mentioned.',
@@ -21,15 +21,18 @@ class UserCommands(commands.Cog):
                       'to work correctly, you should mention the user, however, as long as the given name '
                       'matches a member in the guild, it will work, but as members can have the same nicknames/'
                       'usernames it may not give the correct results.',
-        'performance_brief': 'Provides performance stats of the bot.',
-        'performance_help': 'Syntax: ?performance\n\nCan be shorted to "per". This command returns various '
-                             'performance stats for the bot such as latency between bot and Discord API and latency '
-                             'the bot\'s front and backend.'
+        'bot_performance_brief': 'Provides performance stats of the bot.',
+        'bot_performance_help': 'Syntax: ?performance\n\nCan be shorted to "per". This command returns various '
+                                'performance stats for the bot such as latency between bot and Discord API and latency '
+                                'the bot\'s front and backend.',
+        'server_health_brief': 'Returns the overall health of a guild.',
+        'server_health_help': 'Syntax: ?server\n\nThis command provides a link to a page that contains various graphs '
+                              'and charts to illustrate the overall activity of a server.'
 
     }
 
-    @commands.command(aliases = ['ch'], brief = help_lib['check_brief'], help = help_lib['check_help'])
-    async def check(self, ctx: commands.Context, member: discord.Member):
+    @command(aliases = ['ch'], brief = help_lib['check_brief'], help = help_lib['check_help'])
+    async def check(self, ctx: Context, member: Member):
         command = ctx.message.content.split(' ')[1]
 
         if not command.startswith('!'):
@@ -39,7 +42,7 @@ class UserCommands(commands.Cog):
                             'discriminator, the #).')
 
         if member is not None:
-            response: Response = rh.get_member(member.id)
+            response: Response = rh.get_members(member.id)
         else:
             response: Response = rh.get_guild(ctx.message.guild.id)
 
@@ -67,8 +70,8 @@ class UserCommands(commands.Cog):
             response_str: str = f'Last activity for {response_as_dict["name"] if member is None else response_as_dict["username"]} was ' \
                                 f'performed {idle_time} ago.'
 
-            general: discord.TextChannel = find(lambda x: x.name == 'general', ctx.guild.text_channels)
-            sys_chan: discord.TextChannel = ctx.guild.system_channel
+            general: TextChannel = find(lambda x: x.name == 'general', ctx.guild.text_channels)
+            sys_chan: TextChannel = ctx.guild.system_channel
 
             if sys_chan and sys_chan.permissions_for(ctx.guild.me).send_messages:
                 await sys_chan.send(response_str)
@@ -76,12 +79,17 @@ class UserCommands(commands.Cog):
                 await general.send(response_str)
 
     @check.error
-    async def check_error_handler(self, ctx: commands.Context, error):
-        if isinstance(error, commands.MemberNotFound):
+    async def check_error_handler(self, ctx: Context, error):
+        if isinstance(error, MemberNotFound):
             await ctx.reply('That member was not found.')
 
-    @commands.command(aliases = ['per'], brief = help_lib['performance_brief'], help = help_lib['performance_help'])
-    async def performance(self, ctx: commands.Context):
+    @command(aliases = ['per'], brief = help_lib['bot_performance_brief'], help = help_lib['bot_performance_help'])
+    async def bot_performance(self, ctx: Context):
+        pass
+
+    # Check idle time of the server its self.
+    @command(aliases = ['server'], brief = help_lib['server_health_brief'], help = help_lib['server_health_help'])
+    async def server_health(self, ctx: Context):
         pass
 
 

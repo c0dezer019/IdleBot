@@ -166,7 +166,7 @@ def add_guild(guild_info: Dict):
         return guild
 
 
-def get_member(member_id: Optional[int] = None):
+def get_members(member_id: Optional[int] = None):
     func_start: float = perf_counter()
 
     payload: Query = {
@@ -374,6 +374,7 @@ def update_guild(guild_id: int, **data):
     return guild
 
 
+# data - Received as 'nickname', 'last_activity', etc
 def update_member(member_id: int, **data):
     func_start: float = perf_counter()
 
