@@ -16,44 +16,43 @@ class Query(TypedDict):
 
 
 # Will get a specified guild or all guilds if no id is specified.
-def get_guild(guild_id: Optional[int] = None):
+def get_guilds(guild_id: Optional[int] = None):
     func_start = perf_counter()
     payload: Query = {
         'query': '''
             query guild ($guild_id: BigInt!) {
-                 guild (guild_id: $guild_id) {
-                     code
-                     success_msg
-                     errors
-                     guild {
-                         id
-                         guild_id
-                         name
-                         last_activity
-                         last_activity_loc
-                         last_activity_ts
-                         idle_times
-                         idle_time_avgs
-                         idle_time_avg
-                         status
-                         settings
-                         members {
-                            id
-                            member_id
-                            username
-                            nickname
-                            last_activity
-                            last_activity_loc
-                            last_activity_ts
-                            idle_times
-                            idle_time_avg
-                            idle_time_avgs
-                            status
-                            date_added
-                        }
-                         date_added
-                     }
-                 }
+                code
+                success
+                message
+                errors
+                guild {
+                    id
+                    guild_id
+                    name
+                    last_activity
+                    last_activity_loc
+                    last_activity_ts
+                    idle_times
+                    idle_time_avgs
+                    idle_time_avg
+                    status
+                    settings
+                    members {
+                       id
+                       member_id
+                       username
+                       nickname
+                       last_activity
+                       last_activity_loc
+                       last_activity_ts
+                       idle_times
+                       idle_time_avg
+                       idle_time_avgs
+                       status
+                       date_added
+                   }
+                   date_added
+                }
             }
         ''',
         'variables': { 'guild_id': guild_id }
@@ -61,36 +60,36 @@ def get_guild(guild_id: Optional[int] = None):
     } if guild_id is not None else {
         'query': '''
             query guilds {
+                code
+                success
+                message
+                errors
                 guilds {
-                    code
-                    errors
-                    guilds {
-                        id
-                        guild_id
-                        name
+                    id
+                    guild_id
+                    name
+                    last_activity
+                    last_activity_loc
+                    last_activity_ts
+                    idle_times
+                    idle_time_avgs
+                    idle_time_avg
+                    status
+                    settings
+                    members {
+                        member_id
+                        username
+                        nickname
                         last_activity
                         last_activity_loc
                         last_activity_ts
                         idle_times
-                        idle_time_avgs
                         idle_time_avg
+                        idle_time_avgs
                         status
-                        settings
-                        members {
-                            member_id
-                            username
-                            nickname
-                            last_activity
-                            last_activity_loc
-                            last_activity_ts
-                            idle_times
-                            idle_time_avg
-                            idle_time_avgs
-                            status
-                            date_added
-                        }
                         date_added
                     }
+                    date_added
                 }
             }
         '''
@@ -107,13 +106,67 @@ def get_guild(guild_id: Optional[int] = None):
     return response
 
 
+def get_truncated_guild(guild_id: Optional[int] = None):
+    func_start = perf_counter()
+    payload: Query = {
+        'query': '''
+            query Guild ($guild_id: BigInt!) {
+                code
+                success
+                message
+                errors
+                guild (guild_id: $guild_id) {
+                    id
+                    guild_id
+                    settings
+                    members {
+                        id
+                        member_id
+                        status
+                    }
+                }
+            }
+        ''',
+        'variables': {'guild_id': guild_id}
+    } if guild_id is not None else {
+        'query': '''
+            query Guild {
+                code
+                success
+                message
+                errors
+                guilds {
+                    id
+                    guild_id
+                    members {
+                        id
+                        member_id
+                        status
+                    }
+                }
+            }
+        '''
+    }
+
+    logging.info('Initiating guild query')
+
+    response: Response = requests.get(api_url_dev, json = payload)
+    func_end = perf_counter()
+    time_to_complete = func_end - func_start
+
+    logging.info('Guild query complete.')
+    logging.info(f'Operation completed in {time_to_complete} seconds.\n')
+
+    return response
+
+
 def add_guild(guild_info: Dict):
     logging.info('Attempting to add a guild...')
     func_start: float = perf_counter()
 
     logging.info('Searching for pre-existing guild...')
 
-    guild: Response = get_guild(guild_info['guild_id'])
+    guild: Response = get_guilds(guild_info['guild_id'])
     print(guild)
 
     if guild.status_code == 404:
@@ -122,23 +175,18 @@ def add_guild(guild_info: Dict):
             'query': '''
                     mutation createGuild ($guild_id: BigInt!, $name: String!) {
                         createGuild (guild_id: $guild_id, name: $name) {
-                            code
-                            success_msg
-                            errors
-                            guild {
-                                id
-                                guild_id
-                                name
-                                last_activity
-                                last_activity_loc
-                                last_activity_ts
-                                idle_times
-                                idle_time_avg
-                                idle_time_avgs
-                                status
-                                settings
-                                date_added
-                            }
+                            id
+                            guild_id
+                            name
+                            last_activity
+                            last_activity_loc
+                            last_activity_ts
+                            idle_times
+                            idle_time_avg
+                            idle_time_avgs
+                            status
+                            settings
+                            date_added
                         }
                     }
                 ''',
@@ -172,24 +220,23 @@ def get_members(member_id: Optional[int] = None):
     payload: Query = {
         'query': '''
             query member ($member_id: BigInt!) {
-                member (member_id: $member_id) {
-                    code
-                    success_msg
-                    errors
-                    member {
-                        id
-                        member_id
-                        username
-                        nickname
-                        last_activity
-                        last_activity_loc
-                        last_activity_ts
-                        idle_times
-                        idle_time_avg
-                        idle_time_avgs
-                        status
-                        date_added
-                    }
+                code
+                success
+                message
+                errors
+                member {
+                    id
+                    member_id
+                    username
+                    nickname
+                    last_activity
+                    last_activity_loc
+                    last_activity_ts
+                    idle_times
+                    idle_time_avg
+                    idle_time_avgs
+                    status
+                    date_added
                 }
             }
             ''',
@@ -197,23 +244,23 @@ def get_members(member_id: Optional[int] = None):
     } if member_id is not None else {
         'query': '''
             query members {
-                members {
-                    code
-                    errors
-                    members{
-                        id
-                        member_id
-                        username
-                        nickname
-                        last_activity
-                        last_activity_loc
-                        last_activity_ts
-                        idle_times
-                        idle_time_avg
-                        idle_time_avgs
-                        status
-                        date_added
-                    }
+                code
+                success
+                message
+                errors
+                members{
+                    id
+                    member_id
+                    username
+                    nickname
+                    last_activity
+                    last_activity_loc
+                    last_activity_ts
+                    idle_times
+                    idle_time_avg
+                    idle_time_avgs
+                    status
+                    date_added
                 }
             }
         '''
@@ -236,7 +283,7 @@ def add_member(guild_id: int, member: discord.Member):
     logging.info('Checking to see if member exists...')
 
     func_start: float = perf_counter()
-    db_member: Response = get_member(member.id)
+    db_member: Response = get_members(member.id)
 
     if db_member.status_code == 404:
         logging.info('Member does not exist. Adding member to database...')
@@ -245,23 +292,18 @@ def add_member(guild_id: int, member: discord.Member):
             'query': '''
                     mutation createMember ($guild_id: BigInt!, $member_id: BigInt!, $username: String!, $nickname: String) {
                         createMember (guild_id: $guild_id, member_id: $member_id, username: $username, nickname: $nickname) {
-                            code
-                            success_msg
-                            errors
-                            member {
-                                id
-                                member_id
-                                username
-                                nickname
-                                last_activity
-                                last_activity_loc
-                                last_activity_ts
-                                idle_times
-                                idle_time_avg
-                                idle_time_avgs
-                                status
-                                date_added
-                            }
+                            id
+                            member_id
+                            username
+                            nickname
+                            last_activity
+                            last_activity_loc
+                            last_activity_ts
+                            idle_times
+                            idle_time_avg
+                            idle_time_avgs
+                            status
+                            date_added
                         }
                     }
                 ''',
@@ -284,8 +326,8 @@ def add_member(guild_id: int, member: discord.Member):
         else:
             logging.info(f'Was unable to add member. Here\'s the response:\n{response.json()}\n')
             logging.info(f'Operation finished in {time_to_complete} seconds.\n-------------------------')
-            raise Exception(f'Was unable to add user id {member.id}, username {member.name}#{member.discriminator}')
 
+            raise Exception(f'Was unable to add user id {member.id}, username {member.name}#{member.discriminator}')
     else:
         func_end: float = perf_counter()
         time_to_complete: float = func_end - func_start
@@ -310,23 +352,18 @@ def update_guild(guild_id: int, **data):
                              last_activity_loc: $last_activity_loc, last_activity_ts: $last_activity_ts, 
                              idle_times: $idle_times, idle_time_avg: $idle_time_avg, idle_time_avgs: $idle_time_avgs,
                              status: $status) {
-                    code
-                    success_msg
-                    errors
-                    guild {
-                        id
-                        guild_id
-                        name
-                        last_activity
-                        last_activity_loc
-                        last_activity_ts
-                        idle_times
-                        idle_time_avg
-                        idle_time_avgs
-                        status
-                        settings
-                        date_added
-                    }
+                    id
+                    guild_id
+                    name
+                    last_activity
+                    last_activity_loc
+                    last_activity_ts
+                    idle_times
+                    idle_time_avg
+                    idle_time_avgs
+                    status
+                    settings
+                    date_added
                 }
             }
         ''',
@@ -347,6 +384,7 @@ def update_guild(guild_id: int, **data):
         loop_end: float = perf_counter_ns() / 1000
         time_to_complete: float = loop_end - loop_start
         loop_times.append(time_to_complete)
+
         logging.info(f'Payload {percentage_complete}% complete. {time_to_complete} microseconds.')
 
         if percentage_complete == 100:
@@ -387,23 +425,18 @@ def update_member(member_id: int, **data):
                               last_activity_loc: $last_activity_loc, last_activity_ts: $last_activity_ts,
                               idle_times: $idle_times, idle_time_avg: $idle_time_avg, idle_time_avgs: $idle_time_avgs, 
                               status: $status) {
-                    code
-                    success_msg
-                    errors
-                    member {
-                        id
-                        member_id
-                        username
-                        nickname
-                        last_activity
-                        last_activity_loc
-                        last_activity_ts
-                        idle_times
-                        idle_time_avg
-                        idle_time_avgs
-                        status
-                        date_added
-                    }
+                    id
+                    member_id
+                    username
+                    nickname
+                    last_activity
+                    last_activity_loc
+                    last_activity_ts
+                    idle_times
+                    idle_time_avg
+                    idle_time_avgs
+                    status
+                    date_added
                 }
             }
         ''',
