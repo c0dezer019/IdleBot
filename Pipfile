@@ -9,12 +9,14 @@ arrow = "*"
 asyncpg = "*"
 requests = "*"
 python-dotenv = "*"
-isort = {extras = ["pipfile_deprecated_finder", "requirements_deprecated_finder"], version = "*"}
 
 [dev-packages]
 autopep8 = "*"
 pre-commit = "*"
 pip-tools = "*"
+black = "*"
+pylint = "*"
+isort = {extras = ["pipfile_deprecated_finder", "requirements_deprecated_finder"], version = "*"}
 
 [requires]
 python_version = "3.10"
