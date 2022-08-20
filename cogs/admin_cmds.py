@@ -1,6 +1,9 @@
-from discord import Member
-from discord.ext.commands import command, Cog, Bot, Context, has_guild_permissions, MissingPermissions, MemberNotFound
 from typing import Optional
+
+from discord import Member
+from discord.ext.commands import (Bot, Cog, Context, MemberNotFound,
+                                  MissingPermissions, command,
+                                  has_guild_permissions)
 
 
 class AdminCommands(Cog):
@@ -11,7 +14,6 @@ class AdminCommands(Cog):
     @command()
     @has_guild_permissions(administrator = True)
     async def set(self, ctx: Context):
-        seconds: int = ctx.message
         # Controls the functionality of the bot per guild.
         settings = {
             'kick_inactive_members': True,

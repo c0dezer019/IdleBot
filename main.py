@@ -1,13 +1,14 @@
-from discord.ext import commands
-from dotenv import load_dotenv
-from logging.handlers import RotatingFileHandler
-import discord
 import json
 import logging
-import traceback
-import utility.request_handler as rh
 import os
+import traceback
+from logging.handlers import RotatingFileHandler
 
+import discord
+from discord.ext import commands
+from dotenv import load_dotenv
+
+import utility.request_handler as rh
 
 load_dotenv()
 TOKEN = os.getenv('TOKEN')

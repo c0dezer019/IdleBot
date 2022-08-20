@@ -1,7 +1,9 @@
-from discord.ext.commands import command, Cog, Context, CheckFailure
 from typing import Optional
-from utility.decorators import is_bot_developer
+
+from discord.ext.commands import CheckFailure, Cog, Context, command
+
 import utility.request_handler as rh
+from utility.decorators import is_bot_developer
 
 
 class DevCommands(Cog):

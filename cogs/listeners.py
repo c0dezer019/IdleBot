@@ -1,12 +1,14 @@
-from discord import Member, TextChannel, Message, User, VoiceState, Guild, Game
-from discord.ext.commands import Bot, Cog
-from discord.utils import get
-from typing import Dict
-from utility.helpers import check_idle_time
-import arrow
 import json
 import logging
+from typing import Dict
+
+import arrow
+from discord import Game, Guild, Member, Message, TextChannel, User, VoiceState
+from discord.ext.commands import Bot, Cog
+from discord.utils import get
+
 import utility.request_handler as rh
+from utility.helpers import check_idle_time
 
 
 class Listeners(Cog):

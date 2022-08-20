@@ -1,5 +1,6 @@
 from discord.ext import commands
 
+
 def is_bot_developer():
     def predicate(ctx: commands.Context):
         return ctx.message.author.id == 102588778232705024

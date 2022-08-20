@@ -1,9 +1,10 @@
+import datetime
+import logging
 from datetime import timedelta
 from time import perf_counter_ns
 from typing import List
+
 import arrow
-import datetime
-import logging
 
 
 def calculate_average_idle_time() -> int:

@@ -1,7 +1,7 @@
 from discord import Guild
-from discord.ext.commands import Cog, bot_has_guild_permissions
-from discord.ext.commands import Bot
+from discord.ext.commands import Bot, Cog, bot_has_guild_permissions
 from discord.utils import find
+
 import utility.request_handler as rh
 
 

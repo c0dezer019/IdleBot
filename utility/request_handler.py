@@ -1,10 +1,11 @@
-from typing import Dict, Optional, TypedDict
-from requests import Response
-from time import perf_counter, perf_counter_ns
-from typing import List
-import discord
 import logging
+import traceback
+from time import perf_counter, perf_counter_ns
+from typing import Dict, List, Optional, TypedDict
+
+import discord
 import requests
+from requests import Response
 
 api_url_dev = 'http://127.0.0.1:5000/bot/graphql'
 api_base_url_prod = 'https://combot.bblankenship.me/v1/'
@@ -40,7 +41,9 @@ def get_purge_list():
     time_to_complete: float = func_end - func_start
 
     logging.info('Purge list retrieved.')
-    logging.info(f'Operation completed in {time_to_complete} seconds.\n')
+    logging.info(
+        f'Operation completed in {time_to_complete} seconds.\n-------------------------'
+    )
 
     return response
 
@@ -48,8 +51,8 @@ def remove_from_purge_list(member_id: int):
     func_start: float = perf_counter()
     payload: Query = {
         'query': '''
-            mutation DeletePurgeListEntry ($member_id: Int!) {
-                deletePurgeListEntry (member_id: $member_id) {
+            mutation DeletePurgeListEntry($member_id: Int!) {
+                deletePurgeListEntry(member_id: $member_id) {
                     code
                     success
                     message
@@ -65,24 +68,54 @@ def remove_from_purge_list(member_id: int):
     func_end: float = perf_counter()
     time_to_complete: float = func_end - func_start
 
-    logging.info(f'Operation finished in {time_to_complete} seconds.\n')
+    logging.info(
+        f'Operation finished in {time_to_complete} seconds.\n-------------------------'
+    )
 
     if response.status_code == 200:
         pass
     else:
         raise
 
+def add_to_purge_list(guild_id: int, member_id: int):
+    func_start: float = perf_counter()
+    payload: Query = {
+        'query': '''
+            mutation AddToPurgeList($member_id: Int!, $guild_id: Int!) {
+                addToPurgeList(member_id: $member_id, guild_id: $guild_id) {
+                    code
+                    success
+                    message
+                    errors
+                }
+            }
+        ''',
+        'variables': {'member_id': member_id, 'guild_id': guild_id},
+    }
+
+    logging.info('Adding new purge entry.')
+
+    response: Response = requests.post(api_url_dev, json = payload)
+    func_end: float = perf_counter()
+    time_to_complete: float = func_end - func_start
+
+    logging.info(
+        f'Operation finished in {time_to_complete} seconds.\n-------------------------'
+    )
+
+    return response
+
 # Will get a specified guild or all guilds if no id is specified.
 def get_guilds(guild_id: Optional[int] = None):
     func_start = perf_counter()
     payload: Query = {
         'query': '''
-            query Guild ($guild_id: BigInt!) {
+            query Guild($guild_id: BigInt!) {
                 code
                 success
                 message
                 errors
-                guild (guild_id: $guild_id) {
+                guild(guild_id: $guild_id) {
                     id
                     guild_id
                     name
@@ -124,7 +157,6 @@ def get_guilds(guild_id: Optional[int] = None):
             }
         ''',
         'variables': { 'guild_id': guild_id }
-
     } if guild_id is not None else {
         'query': '''
             query Guilds {
@@ -191,7 +223,6 @@ def add_guild(guild_info: Dict):
     logging.info('Searching for pre-existing guild...')
 
     guild: Response = get_guilds(guild_info['guild_id'])
-    print(guild)
 
     if guild.status_code == 404:
         logging.info('Guild not found.')
@@ -456,8 +487,8 @@ def update_guild(guild_id: int, **data):
 
         return guild.status_code
 
-    func_end = perf_counter()
-    time_to_complete = func_end - func_start
+    func_end: float = perf_counter()
+    time_to_complete: float = func_end - func_start
 
     logging.info(f'Operation finished in {time_to_complete} seconds.\n-------------------------')
 
@@ -555,6 +586,7 @@ def update_member(member_id: int, **data):
 
 
 def remove_guild(guild_id: int):
+    func_start: float = perf_counter()
     payload: Query = {
         'query': '''
             mutation DeleteGuild ($guild_id: BigInt!) {
@@ -572,10 +604,22 @@ def remove_guild(guild_id: int):
     }
 
     guild: Response = requests.delete(api_url_dev, json = payload)
+    func_end: float = perf_counter()
+    time_to_complete: float = func_end - func_start
+
 
     if guild.status_code == 200:
+        logging.info('Guild removed.')
+        logging.info(
+            f'Operation finished in {time_to_complete} seconds.\n-------------------------'
+        )
+
         pass
     else:
+        logging.debug(f'Failed to remove guild.\n\n{traceback.format_exc()}')
+        logging.info(
+            f'Operation finished in {time_to_complete} seconds.\n-------------------------'
+        )
         raise
 
 
