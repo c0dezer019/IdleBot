@@ -14,8 +14,8 @@ class AdminCommands(Cog):
         seconds: int = ctx.message
         # Controls the functionality of the bot per guild.
         settings = {
-            'kick_idle_members': True,
-            'allowed_idle_time': [1, 0, 0, 0, 0],  # Months, weeks, days, hours, minutes
+            'kick_inactive_members': True,
+            'time_before_inactive': [1, 0, 0, 0, 0],  # Months, weeks, days, hours, minutes
         }
         pass
 
