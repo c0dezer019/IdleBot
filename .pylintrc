@@ -1,0 +1,11 @@
+[MASTER]
+ignore-patterns=*.test.py,__init__.py
+
+[BASIC]
+good-names=i,j,k,x,f,ex
+
+[FORMAT]
+max-line-length=100
+
+[MESSAGES CONTROL]
+disable=R,C,E5142
