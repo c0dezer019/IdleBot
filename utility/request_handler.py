@@ -15,39 +15,107 @@ class Query(TypedDict):
     variables: Dict
 
 
+def get_purge_list():
+    func_start: float = perf_counter()
+    payload: Query = {
+        'query': '''
+            query PurgeList {
+                code
+                success
+                message
+                errors
+                list {
+                    guild_id
+                    members {
+                        member_id
+                    }
+                }
+            }
+        '''
+    }
+    logging.info('Fetching purge list...')
+
+    response: Response = requests.get(api_url_dev, json = payload)
+    func_end: float = perf_counter()
+    time_to_complete: float = func_end - func_start
+
+    logging.info('Purge list retrieved.')
+    logging.info(f'Operation completed in {time_to_complete} seconds.\n')
+
+    return response
+
+def remove_from_purge_list(member_id: int):
+    func_start: float = perf_counter()
+    payload: Query = {
+        'query': '''
+            mutation DeletePurgeListEntry ($member_id: Int!) {
+                deletePurgeListEntry (member_id: $member_id) {
+                    code
+                    success
+                    message
+                    errors
+                }
+            }
+        '''
+    }
+
+    logging.info(f'Removing member {member_id} from purge list...')
+
+    response: Response = requests.get(api_url_dev, json = payload)
+    func_end: float = perf_counter()
+    time_to_complete: float = func_end - func_start
+
+    logging.info(f'Operation finished in {time_to_complete} seconds.\n')
+
+    if response.status_code == 200:
+        pass
+    else:
+        raise
+
 # Will get a specified guild or all guilds if no id is specified.
 def get_guilds(guild_id: Optional[int] = None):
     func_start = perf_counter()
     payload: Query = {
         'query': '''
-            query guild ($guild_id: BigInt!) {
+            query Guild ($guild_id: BigInt!) {
                 code
                 success
                 message
                 errors
-                guild {
+                guild (guild_id: $guild_id) {
                     id
                     guild_id
                     name
-                    last_activity
-                    last_activity_loc
-                    last_activity_ts
-                    idle_times
-                    idle_time_avgs
-                    idle_time_avg
+                    last_activity {
+                        location
+                        type
+                        timestamp
+                    }
+                    idle_stats {
+                        times_idle
+                        avg_idle_time
+                        previous_avgs
+                    }
                     status
-                    settings
+                    settings {
+                        kick_inactive_members
+                        time_before_inactive
+                    }
                     members {
                        id
                        member_id
                        username
                        nickname
-                       last_activity
-                       last_activity_loc
-                       last_activity_ts
-                       idle_times
-                       idle_time_avg
-                       idle_time_avgs
+                       last_activity {
+                            location
+                            type
+                            timestamp
+                        }
+                        idle_stats {
+                            times_idle
+                            avg_idle_time
+                            previous_avgs
+                        }
                        status
                        date_added
                    }
@@ -59,7 +127,7 @@ def get_guilds(guild_id: Optional[int] = None):
 
     } if guild_id is not None else {
         'query': '''
-            query guilds {
+            query Guilds {
                 code
                 success
                 message
@@ -68,24 +136,35 @@ def get_guilds(guild_id: Optional[int] = None):
                     id
                     guild_id
                     name
-                    last_activity
-                    last_activity_loc
-                    last_activity_ts
-                    idle_times
-                    idle_time_avgs
-                    idle_time_avg
+                    last_activity {
+                        location
+                        type
+                        timestamp
+                    }
+                    idle_stats {
+                        times_idle
+                        avg_idle_time
+                        previous_avgs
+                    }
                     status
-                    settings
+                    settings {
+                        kick_idle_members
+                        time_before_inactive
+                    }
                     members {
                         member_id
                         username
                         nickname
-                        last_activity
-                        last_activity_loc
-                        last_activity_ts
-                        idle_times
-                        idle_time_avg
-                        idle_time_avgs
+                        last_activity {
+                            location
+                            type
+                            timestamp
+                        }
+                        idle_stats {
+                            times_idle
+                            avg_idle_time
+                            previous_avgs
+                        }
                         status
                         date_added
                     }
@@ -105,61 +184,6 @@ def get_guilds(guild_id: Optional[int] = None):
 
     return response
 
-
-def get_truncated_guild(guild_id: Optional[int] = None):
-    func_start = perf_counter()
-    payload: Query = {
-        'query': '''
-            query Guild ($guild_id: BigInt!) {
-                code
-                success
-                message
-                errors
-                guild (guild_id: $guild_id) {
-                    id
-                    guild_id
-                    settings
-                    members {
-                        id
-                        member_id
-                        status
-                    }
-                }
-            }
-        ''',
-        'variables': {'guild_id': guild_id}
-    } if guild_id is not None else {
-        'query': '''
-            query Guild {
-                code
-                success
-                message
-                errors
-                guilds {
-                    id
-                    guild_id
-                    members {
-                        id
-                        member_id
-                        status
-                    }
-                }
-            }
-        '''
-    }
-
-    logging.info('Initiating guild query')
-
-    response: Response = requests.get(api_url_dev, json = payload)
-    func_end = perf_counter()
-    time_to_complete = func_end - func_start
-
-    logging.info('Guild query complete.')
-    logging.info(f'Operation completed in {time_to_complete} seconds.\n')
-
-    return response
-
-
 def add_guild(guild_info: Dict):
     logging.info('Attempting to add a guild...')
     func_start: float = perf_counter()
@@ -173,19 +197,26 @@ def add_guild(guild_info: Dict):
         logging.info('Guild not found.')
         payload: Query = {
             'query': '''
-                    mutation createGuild ($guild_id: BigInt!, $name: String!) {
+                    mutation CreateGuild ($guild_id: BigInt!, $name: String!) {
                         createGuild (guild_id: $guild_id, name: $name) {
                             id
                             guild_id
                             name
-                            last_activity
-                            last_activity_loc
-                            last_activity_ts
-                            idle_times
-                            idle_time_avg
-                            idle_time_avgs
+                            last_activity {
+                                location
+                                type
+                                timestamp
+                            }
+                            idle_stats {
+                                times_idle
+                                avg_idle_time
+                                previous_avgs
+                            }
                             status
-                            settings
+                            settings {
+                                kick_inactive_members
+                                time_before_inactive
+                            }
                             date_added
                         }
                     }
@@ -194,10 +225,12 @@ def add_guild(guild_info: Dict):
         }
 
         logging.info('Adding guild to database...')
+
         response: Response = requests.post(api_url_dev, json = payload)
 
         func_end: float = perf_counter()
         time_to_complete: float = func_end - func_start
+
         logging.info(f'Guild added successfully.')
         logging.info(f'Newest Guild:\n\n{response.json()}\n')
         logging.info(f'Operation finished in {time_to_complete} seconds.\n-------------------------')
@@ -219,7 +252,7 @@ def get_members(member_id: Optional[int] = None):
 
     payload: Query = {
         'query': '''
-            query member ($member_id: BigInt!) {
+            query Member ($member_id: BigInt!) {
                 code
                 success
                 message
@@ -229,12 +262,16 @@ def get_members(member_id: Optional[int] = None):
                     member_id
                     username
                     nickname
-                    last_activity
-                    last_activity_loc
-                    last_activity_ts
-                    idle_times
-                    idle_time_avg
-                    idle_time_avgs
+                    last_activity {
+                        location
+                        type
+                        timestamp
+                    }
+                    idle_stats {
+                        times_idle
+                        avg_idle_time
+                        previous_avgs
+                    }
                     status
                     date_added
                 }
@@ -243,7 +280,7 @@ def get_members(member_id: Optional[int] = None):
         'variables': { 'member_id': member_id }
     } if member_id is not None else {
         'query': '''
-            query members {
+            query Members {
                 code
                 success
                 message
@@ -253,12 +290,16 @@ def get_members(member_id: Optional[int] = None):
                     member_id
                     username
                     nickname
-                    last_activity
-                    last_activity_loc
-                    last_activity_ts
-                    idle_times
-                    idle_time_avg
-                    idle_time_avgs
+                    last_activity {
+                        location
+                        type
+                        timestamp
+                    }
+                    idle_stats {
+                        times_idle
+                        avg_idle_time
+                        previous_avgs
+                    }
                     status
                     date_added
                 }
@@ -290,18 +331,22 @@ def add_member(guild_id: int, member: discord.Member):
 
         payload: Query = {
             'query': '''
-                    mutation createMember ($guild_id: BigInt!, $member_id: BigInt!, $username: String!, $nickname: String) {
+                    mutation CreateMember ($guild_id: BigInt!, $member_id: BigInt!, $username: String!, $nickname: String) {
                         createMember (guild_id: $guild_id, member_id: $member_id, username: $username, nickname: $nickname) {
                             id
                             member_id
                             username
                             nickname
-                            last_activity
-                            last_activity_loc
-                            last_activity_ts
-                            idle_times
-                            idle_time_avg
-                            idle_time_avgs
+                            last_activity {
+                                location
+                                type
+                                timestamp
+                            }
+                            idle_stats {
+                                times_idle
+                                avg_idle_time
+                                previous_avgs
+                            }
                             status
                             date_added
                         }
@@ -345,7 +390,7 @@ def update_guild(guild_id: int, **data):
 
     payload: Query = {
         'query': '''
-            mutation updateGuild ($guild_id: BigInt!, $name: String, $last_activity: String, $last_activity_loc: String, 
+            mutation UpdateGuild ($guild_id: BigInt!, $name: String, $last_activity: String, $last_activity_loc: String, 
                                   $last_activity_ts: DateTime, $idle_times: List, $idle_time_avg: Int,
                                   $idle_time_avgs: List, $status: String) {
                 updateGuild (guild_id: $guild_id, name: $name, last_activity: $last_activity, 
@@ -355,14 +400,21 @@ def update_guild(guild_id: int, **data):
                     id
                     guild_id
                     name
-                    last_activity
-                    last_activity_loc
-                    last_activity_ts
-                    idle_times
-                    idle_time_avg
-                    idle_time_avgs
+                    last_activity {
+                        location
+                        type
+                        timestamp
+                    }
+                    idle_stats {
+                        times_idle
+                        avg_idle_time
+                        previous_avgs
+                    }
                     status
-                    settings
+                    settings {
+                        kick_inactive_members
+                        time_before_inactive
+                    }
                     date_added
                 }
             }
@@ -418,23 +470,42 @@ def update_member(member_id: int, **data):
 
     payload: Query = {
         'query': '''
-            mutation updateMember ($member_id: BigInt!, $nickname: String, $last_activity: String, 
-                                   $last_activity_loc: String, $last_activity_ts: DateTime, $idle_times: List,
-                                   $idle_time_avg: Int, $idle_time_avgs: List, $status: String) {
-                updateMember (member_id: $member_id, nickname: $nickname, last_activity: $last_activity, 
-                              last_activity_loc: $last_activity_loc, last_activity_ts: $last_activity_ts,
-                              idle_times: $idle_times, idle_time_avg: $idle_time_avg, idle_time_avgs: $idle_time_avgs, 
-                              status: $status) {
+            mutation UpdateMember (
+                $member_id: BigInt!,
+                $nickname: String,
+                $last_activity: String,
+                $last_activity_loc: String,
+                $last_activity_ts: DateTime,
+                $idle_times: List,
+                $idle_time_avg: Int,
+                $idle_time_avgs: List,
+                $status: String
+            ) {
+                updateMember (
+                    member_id: $member_id,
+                    nickname: $nickname,
+                    last_activity: $last_activity,
+                    last_activity_loc: $last_activity_loc,
+                    last_activity_ts: $last_activity_ts,
+                    idle_times: $idle_times,
+                    idle_time_avg: $idle_time_avg,
+                    idle_time_avgs: $idle_time_avgs,
+                    status: $status
+                ) {
                     id
                     member_id
                     username
                     nickname
-                    last_activity
-                    last_activity_loc
-                    last_activity_ts
-                    idle_times
-                    idle_time_avg
-                    idle_time_avgs
+                    last_activity {
+                        location
+                        type
+                        timestamp
+                    }
+                    idle_stats {
+                        times_idle
+                        avg_idle_time
+                        previous_avgs
+                    }
                     status
                     date_added
                 }
@@ -486,10 +557,11 @@ def update_member(member_id: int, **data):
 def remove_guild(guild_id: int):
     payload: Query = {
         'query': '''
-            mutation deleteGuild ($guild_id: BigInt!) {
+            mutation DeleteGuild ($guild_id: BigInt!) {
                 deleteGuild (guild_id: $guild_id) {
                     code
-                    success_msg
+                    success
+                    message
                     errors
                 }
             }
@@ -510,10 +582,11 @@ def remove_guild(guild_id: int):
 def remove_member(member_id: int):
     payload: Query = {
         'query': '''
-            mutation deleteMember ($member_id: BigInt!) {
+            mutation DeleteMember ($member_id: BigInt!) {
                 deleteMember (member_id: $member_id) {
                     code
-                    success_msg
+                    success
+                    message
                     errors
                 }
             }
