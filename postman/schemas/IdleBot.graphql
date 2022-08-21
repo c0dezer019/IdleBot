@@ -37,10 +37,22 @@ scalar DatabaseId
 type Activity {
     location: Snowflake!
     type: ACTIVITY!
-    timestamp: DateTime
+    timestamp: DateTime!
+}
+
+input ActivityInput {
+    location: Snowflake!
+    type: ACTIVITY!
+    timestamp: DateTime!
 }
 
 type IdleStats {
+    times_idle: [Seconds]
+    avg_idle_time: Seconds
+    previous_avgs: [Seconds]
+}
+
+input IdleInput {
     times_idle: [Seconds]
     avg_idle_time: Seconds
     previous_avgs: [Seconds]
@@ -60,6 +72,11 @@ type Member {
 type SettingsObject {
     kick_inactive_members: Boolean!
     time_before_inactive: [Int]!
+}
+
+input SettingsInput {
+    kick_inactive_members: Boolean
+    time_before_inactive: [Int]
 }
 
 type Guild {
@@ -122,9 +139,9 @@ type Query implements Q {
 
 type Mutation {
     createGuild(guild_id: Snowflake!, name: String!): GuildResponse!
-    updateGuild(guild_id: Snowflake!, name: String, last_activity: Activity, idle_stats: IdleStats, status: STATUS): GuildResponse!
+    updateGuild(guild_id: Snowflake!, name: String, last_activity: ActivityInput, idle_stats: IdleInput, status: STATUS, settings: SettingsInput): GuildResponse!
     deleteGuild(guild_id: Snowflake!): DeleteResponse!
     createMember(guild_id: Snowflake!, member_id: Snowflake!, username: String!, nickname: String): MemberResponse!
-    updateMember(member_id: Snowflake!, nickname: String, last_activity: Activity, idle_stats: IdleStats, status: STATUS): MemberResponse!
+    updateMember(member_id: Snowflake!, nickname: String, last_activity: ActivityInput, idle_stats: IdleInput, status: STATUS): MemberResponse!
     deleteMember(member_id: Snowflake!): DeleteResponse!
 }
