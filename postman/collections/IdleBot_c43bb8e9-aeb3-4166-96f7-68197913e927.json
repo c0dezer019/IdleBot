@@ -1,0 +1,250 @@
+{
+	"info": {
+		"_postman_id": "a41d4d7f-cca5-42f2-b8e9-2209693967d8",
+		"name": "IdleBot",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "mutations",
+			"item": [
+				{
+					"name": "createGuild",
+					"id": "9d5ee5da-6918-4136-a892-4f7e2bbacc7b",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation createGuild ($guild_id: Snowflake!, $guild_id1: Snowflake!, $name: String!) {\n    createGuild (guild_id: $guild_id1, name: $name) {\n        code\n        success\n        message\n        errors\n        guild (guild_id: $guild_id) {\n            id\n            guild_id\n            name\n            status\n            date_added\n        }\n    }\n}",
+								"variables": "{\n  \"guild_id\": \"\",\n  \"guild_id1\": \"\",\n  \"name\": \"\"\n}"
+							}
+						},
+						"url": {
+							"raw": "{{url}}",
+							"host": [
+								"{{url}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "updateGuild",
+					"id": "1622b6e8-4d7b-4b1a-95bd-30204e31e2cf",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation updateGuild ($guild_id: Snowflake!, $guild_id1: Snowflake!, $name: String, $last_activity: ActivityInput, $idle_stats: IdleInput, $status: STATUS, $settings: SettingsInput) {\n    updateGuild (guild_id: $guild_id1, name: $name, last_activity: $last_activity, idle_stats: $idle_stats, status: $status, settings: $settings) {\n        code\n        success\n        message\n        errors\n        guild (guild_id: $guild_id) {\n            id\n            guild_id\n            name\n            status\n            date_added\n        }\n    }\n}",
+								"variables": "{\n  \"guild_id\": \"\",\n  \"guild_id1\": \"\",\n  \"name\": \"\",\n  \"last_activity\": {\n    \"location\": \"\",\n    \"type\": \"\",\n    \"timestamp\": \"\"\n  },\n  \"idle_stats\": {\n    \"times_idle\": [\n      \"\"\n    ],\n    \"avg_idle_time\": \"\",\n    \"previous_avgs\": [\n      \"\"\n    ]\n  },\n  \"status\": \"\",\n  \"settings\": {\n    \"kick_inactive_members\": true,\n    \"time_before_inactive\": [\n      0\n    ]\n  }\n}"
+							}
+						},
+						"url": {
+							"raw": "{{url}}",
+							"host": [
+								"{{url}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "deleteGuild",
+					"id": "d108157f-625a-420a-a743-4076499cbb58",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation deleteGuild ($guild_id: Snowflake!) {\n    deleteGuild (guild_id: $guild_id) {\n        code\n        success\n        message\n        errors\n    }\n}",
+								"variables": "{\n  \"guild_id\": \"\"\n}"
+							}
+						},
+						"url": {
+							"raw": "{{url}}",
+							"host": [
+								"{{url}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "createMember",
+					"id": "9a221c56-e243-4c24-9da8-5e382ee65da5",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation createMember ($member_id: Snowflake, $guild_id: Snowflake!, $member_id1: Snowflake!, $username: String!, $nickname: String) {\n    createMember (guild_id: $guild_id, member_id: $member_id1, username: $username, nickname: $nickname) {\n        code\n        success\n        message\n        errors\n        member (member_id: $member_id) {\n            id\n            member_id\n            username\n            nickname\n            status\n            date_added\n        }\n    }\n}",
+								"variables": "{\n  \"member_id\": \"\",\n  \"guild_id\": \"\",\n  \"member_id1\": \"\",\n  \"username\": \"\",\n  \"nickname\": \"\"\n}"
+							}
+						},
+						"url": {
+							"raw": "{{url}}",
+							"host": [
+								"{{url}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "updateMember",
+					"id": "daeb93d2-8bb0-4134-9755-720578a7e364",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation updateMember ($member_id: Snowflake, $member_id1: Snowflake!, $nickname: String, $last_activity: ActivityInput, $idle_stats: IdleInput, $status: STATUS) {\n    updateMember (member_id: $member_id1, nickname: $nickname, last_activity: $last_activity, idle_stats: $idle_stats, status: $status) {\n        code\n        success\n        message\n        errors\n        member (member_id: $member_id) {\n            id\n            member_id\n            username\n            nickname\n            status\n            date_added\n        }\n    }\n}",
+								"variables": "{\n  \"member_id\": \"\",\n  \"member_id1\": \"\",\n  \"nickname\": \"\",\n  \"last_activity\": {\n    \"location\": \"\",\n    \"type\": \"\",\n    \"timestamp\": \"\"\n  },\n  \"idle_stats\": {\n    \"times_idle\": [\n      \"\"\n    ],\n    \"avg_idle_time\": \"\",\n    \"previous_avgs\": [\n      \"\"\n    ]\n  },\n  \"status\": \"\"\n}"
+							}
+						},
+						"url": {
+							"raw": "{{url}}",
+							"host": [
+								"{{url}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "deleteMember",
+					"id": "b0391d0c-13a2-41fe-b7e8-543f2eaa3127",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation deleteMember ($member_id: Snowflake!) {\n    deleteMember (member_id: $member_id) {\n        code\n        success\n        message\n        errors\n    }\n}",
+								"variables": "{\n  \"member_id\": \"\"\n}"
+							}
+						},
+						"url": {
+							"raw": "{{url}}",
+							"host": [
+								"{{url}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"id": "ffbb9ceb-dd9b-45d2-a88b-d641e6ce66a1"
+		},
+		{
+			"name": "queries",
+			"item": [
+				{
+					"name": "guild",
+					"id": "88cdc5e4-aa16-4ddd-9cdb-eac04bfc4a21",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query guild ($guild_id: Snowflake!, $guild_id1: Snowflake!) {\n    guild (guild_id: $guild_id1) {\n        code\n        success\n        message\n        errors\n        guild (guild_id: $guild_id) {\n            id\n            guild_id\n            name\n            status\n            date_added\n        }\n    }\n}",
+								"variables": "{\n  \"guild_id\": \"\",\n  \"guild_id1\": \"\"\n}"
+							}
+						},
+						"url": {
+							"raw": "{{url}}",
+							"host": [
+								"{{url}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "guilds",
+					"id": "61b007ae-84f9-4f5d-a9e0-6fab6df6a92a",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query guilds {\n    guilds {\n        code\n        success\n        message\n        errors\n        guilds {\n            id\n            guild_id\n            name\n            status\n            date_added\n        }\n    }\n}",
+								"variables": "{}"
+							}
+						},
+						"url": {
+							"raw": "{{url}}",
+							"host": [
+								"{{url}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "member",
+					"id": "d94cb9c4-e3b6-46bd-809e-2b606a253b40",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query member ($member_id: Snowflake, $member_id1: Snowflake!) {\n    member (member_id: $member_id1) {\n        code\n        success\n        message\n        errors\n        member (member_id: $member_id) {\n            id\n            member_id\n            username\n            nickname\n            status\n            date_added\n        }\n    }\n}",
+								"variables": "{\n  \"member_id\": \"\",\n  \"member_id1\": \"\"\n}"
+							}
+						},
+						"url": {
+							"raw": "{{url}}",
+							"host": [
+								"{{url}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "members",
+					"id": "586146c3-d409-4d43-befa-ee0ab5bb76d0",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query members {\n    members {\n        code\n        success\n        message\n        errors\n        members {\n            id\n            member_id\n            username\n            nickname\n            status\n            date_added\n        }\n    }\n}",
+								"variables": "{}"
+							}
+						},
+						"url": {
+							"raw": "{{url}}",
+							"host": [
+								"{{url}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"id": "be712058-8320-45e6-93ae-1c486a51bed2"
+		}
+	],
+	"variable": [
+		{
+			"id": "url",
+			"key": "url",
+			"value": "",
+			"type": "any",
+			"description": "URL for the request."
+		}
+	]
+}
