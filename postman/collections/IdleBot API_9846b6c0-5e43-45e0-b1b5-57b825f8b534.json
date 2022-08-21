@@ -1,7 +1,7 @@
 {
 	"info": {
-		"_postman_id": "a41d4d7f-cca5-42f2-b8e9-2209693967d8",
-		"name": "IdleBot",
+		"_postman_id": "b47ea279-1486-4887-8ab1-75e84d55734b",
+		"name": "IdleBot API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -10,7 +10,7 @@
 			"item": [
 				{
 					"name": "createGuild",
-					"id": "9d5ee5da-6918-4136-a892-4f7e2bbacc7b",
+					"id": "047cf41f-447b-48f9-babb-28f92d543c87",
 					"request": {
 						"method": "POST",
 						"header": [],
@@ -32,7 +32,7 @@
 				},
 				{
 					"name": "updateGuild",
-					"id": "1622b6e8-4d7b-4b1a-95bd-30204e31e2cf",
+					"id": "8368c5d8-d2e5-47a3-858e-6413a3312cdf",
 					"request": {
 						"method": "POST",
 						"header": [],
@@ -54,7 +54,7 @@
 				},
 				{
 					"name": "deleteGuild",
-					"id": "d108157f-625a-420a-a743-4076499cbb58",
+					"id": "39fa7c2f-e732-48fb-84b9-a6fcd8979aa8",
 					"request": {
 						"method": "POST",
 						"header": [],
@@ -76,7 +76,7 @@
 				},
 				{
 					"name": "createMember",
-					"id": "9a221c56-e243-4c24-9da8-5e382ee65da5",
+					"id": "02edad87-bec9-4194-bc6c-a83084c408b2",
 					"request": {
 						"method": "POST",
 						"header": [],
@@ -98,7 +98,7 @@
 				},
 				{
 					"name": "updateMember",
-					"id": "daeb93d2-8bb0-4134-9755-720578a7e364",
+					"id": "bcbaa42b-2609-4e83-8b0c-8b3cb1de4a8f",
 					"request": {
 						"method": "POST",
 						"header": [],
@@ -120,7 +120,7 @@
 				},
 				{
 					"name": "deleteMember",
-					"id": "b0391d0c-13a2-41fe-b7e8-543f2eaa3127",
+					"id": "b1f7d034-0f11-4d34-825f-807e9d0e8b4d",
 					"request": {
 						"method": "POST",
 						"header": [],
@@ -141,14 +141,14 @@
 					"response": []
 				}
 			],
-			"id": "ffbb9ceb-dd9b-45d2-a88b-d641e6ce66a1"
+			"id": "f191a7eb-430d-44d1-bff3-5bccf04bc465"
 		},
 		{
 			"name": "queries",
 			"item": [
 				{
 					"name": "guild",
-					"id": "88cdc5e4-aa16-4ddd-9cdb-eac04bfc4a21",
+					"id": "91cba442-3285-47ec-9b81-ffcedfe40479",
 					"request": {
 						"method": "POST",
 						"header": [],
@@ -170,7 +170,7 @@
 				},
 				{
 					"name": "guilds",
-					"id": "61b007ae-84f9-4f5d-a9e0-6fab6df6a92a",
+					"id": "f1c6169d-044a-43a1-91b3-908ba63cdba3",
 					"request": {
 						"method": "POST",
 						"header": [],
@@ -192,7 +192,7 @@
 				},
 				{
 					"name": "member",
-					"id": "d94cb9c4-e3b6-46bd-809e-2b606a253b40",
+					"id": "6ccee1ae-d1bc-49ff-9fd4-0aa0bfc99eb0",
 					"request": {
 						"method": "POST",
 						"header": [],
@@ -214,7 +214,7 @@
 				},
 				{
 					"name": "members",
-					"id": "586146c3-d409-4d43-befa-ee0ab5bb76d0",
+					"id": "ff428c72-df5f-4a3a-9c81-5484fc9a281a",
 					"request": {
 						"method": "POST",
 						"header": [],
@@ -235,7 +235,7 @@
 					"response": []
 				}
 			],
-			"id": "be712058-8320-45e6-93ae-1c486a51bed2"
+			"id": "157c0b8b-208f-4a0f-8e2e-220dbb295df4"
 		}
 	],
 	"variable": [
