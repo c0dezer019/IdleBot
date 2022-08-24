@@ -11,10 +11,22 @@ interface Response {
 }
 
 interface Q {
-    member(member_id: Int!): MemberResponse
-    members: MembersResponse
-    guild(guild_id: Int!): GuildResponse
-    guilds: GuildsResponse
+    Member(member_id: Int!): MemberResponse
+    Members: MembersResponse
+    Guild(guild_id: Int!): GuildResponse
+    Guilds: GuildsResponse
+    PurgeList: PurgeResponse
+}
+
+interface M {
+    CreateGuild(guild_id: Snowflake!, name: String!): GuildResponse!
+    UpdateGuild(guild_id: Snowflake!, name: String, last_activity: ActivityInput, idle_stats: IdleInput, status: STATUS, settings: SettingsInput): GuildResponse!
+    DeleteGuild(guild_id: Snowflake!): DeleteResponse!
+    CreateMember(guild_id: Snowflake!, member_id: Snowflake!, username: String!, nickname: String): MemberResponse!
+    UpdateMember(member_id: Snowflake!, nickname: String, last_activity: ActivityInput, idle_stats: IdleInput, status: STATUS): MemberResponse!
+    DeleteMember(member_id: Snowflake!): DeleteResponse!
+    AddToPurgeList(member_id: Snowflake!, guild_id: Snowflake!): PurgeResponse!
+    RemoveFromPurgeList(guild_id: Snowflake!): DeleteResponse!
 }
 
 enum ACTIVITY {
@@ -58,7 +70,7 @@ input IdleInput {
     previous_avgs: [Seconds]
 }
 
-type Member {
+type MemberObject {
     id: DatabaseId!
     member_id: Snowflake!
     username: String!
@@ -79,7 +91,7 @@ input SettingsInput {
     time_before_inactive: [Int]
 }
 
-type Guild {
+type GuildObject {
     id: DatabaseId!
     guild_id: Snowflake!
     name: String!
@@ -87,8 +99,13 @@ type Guild {
     idle_stats: IdleStats
     status: STATUS!
     settings: SettingsObject!
-    members: [Member]!
+    members: [MemberObject]!
     date_added: DateTime
+}
+
+type PurgeListObject {
+    member_id: Snowflake!
+    guild_id: Snowflake!
 }
 
 type GuildResponse implements Response {
@@ -96,7 +113,7 @@ type GuildResponse implements Response {
     success: Boolean!
     message: String
     errors: [Error]
-    guild(guild_id: Snowflake!): Guild
+    guild(guild_id: Snowflake!): GuildObject
 }
 
 type GuildsResponse implements Response {
@@ -104,7 +121,7 @@ type GuildsResponse implements Response {
     success: Boolean!
     message: String
     errors: [Error]
-    guilds: [Guild]
+    guilds: [GuildObject]
 }
 
 type MemberResponse implements Response {
@@ -112,7 +129,7 @@ type MemberResponse implements Response {
     success: Boolean!
     message: String
     errors: [Error]
-    member(member_id: Snowflake): Member
+    member(member_id: Snowflake): MemberObject
 }
 
 type MembersResponse implements Response {
@@ -120,7 +137,15 @@ type MembersResponse implements Response {
     success: Boolean!
     message: String
     errors: [Error]
-    members: [Member]
+    members: [MemberObject]
+}
+
+type PurgeResponse implements Response {
+    code: String!
+    success: Boolean!
+    message: String
+    errors: [Error]
+    purgeList: PurgeListObject
 }
 
 type DeleteResponse implements Response {
@@ -131,17 +156,20 @@ type DeleteResponse implements Response {
 }
 
 type Query implements Q {
-    guild(guild_id: Snowflake!): GuildResponse
-    guilds: GuildsResponse
-    member(member_id: Snowflake!): MemberResponse
-    members: MembersResponse
+    Guild(guild_id: Snowflake!): GuildResponse
+    Guilds: GuildsResponse
+    Member(member_id: Snowflake!): MemberResponse
+    Members: MembersResponse
+    PurgeList: PurgeResponse
 }
 
-type Mutation {
-    createGuild(guild_id: Snowflake!, name: String!): GuildResponse!
-    updateGuild(guild_id: Snowflake!, name: String, last_activity: ActivityInput, idle_stats: IdleInput, status: STATUS, settings: SettingsInput): GuildResponse!
-    deleteGuild(guild_id: Snowflake!): DeleteResponse!
-    createMember(guild_id: Snowflake!, member_id: Snowflake!, username: String!, nickname: String): MemberResponse!
-    updateMember(member_id: Snowflake!, nickname: String, last_activity: ActivityInput, idle_stats: IdleInput, status: STATUS): MemberResponse!
-    deleteMember(member_id: Snowflake!): DeleteResponse!
+type Mutation implements M {
+    CreateGuild(guild_id: Snowflake!, name: String!): GuildResponse!
+    UpdateGuild(guild_id: Snowflake!, name: String, last_activity: ActivityInput, idle_stats: IdleInput, status: STATUS, settings: SettingsInput): GuildResponse!
+    DeleteGuild(guild_id: Snowflake!): DeleteResponse!
+    CreateMember(guild_id: Snowflake!, member_id: Snowflake!, username: String!, nickname: String): MemberResponse!
+    UpdateMember(member_id: Snowflake!, nickname: String, last_activity: ActivityInput, idle_stats: IdleInput, status: STATUS): MemberResponse!
+    DeleteMember(member_id: Snowflake!): DeleteResponse!
+    AddToPurgeList(member_id: Snowflake!, guild_id: Snowflake!): PurgeResponse!
+    RemoveFromPurgeList(guild_id: Snowflake!): DeleteResponse!
 }
