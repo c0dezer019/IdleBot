@@ -163,3 +163,5 @@ cython_debug/
 # misc
 bot_log.txt
 storeTest.json
+
+*.code-workspace
