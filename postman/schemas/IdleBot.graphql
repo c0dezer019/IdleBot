@@ -1,0 +1,147 @@
+schema {
+    query: Query
+    mutation: Mutation
+}
+
+interface Response {
+    code: String!
+    success: Boolean!
+    message: String
+    errors: [Error]
+}
+
+interface Q {
+    member(member_id: Int!): MemberResponse
+    members: MembersResponse
+    guild(guild_id: Int!): GuildResponse
+    guilds: GuildsResponse
+}
+
+enum ACTIVITY {
+    CHAT
+    VOICE
+    STREAMING
+}
+
+enum STATUS {
+    ACTIVE
+    INACTIVE
+}
+
+scalar DateTime
+scalar Snowflake
+scalar Error
+scalar Seconds
+scalar DatabaseId
+
+type Activity {
+    location: Snowflake!
+    type: ACTIVITY!
+    timestamp: DateTime!
+}
+
+input ActivityInput {
+    location: Snowflake!
+    type: ACTIVITY!
+    timestamp: DateTime!
+}
+
+type IdleStats {
+    times_idle: [Seconds]
+    avg_idle_time: Seconds
+    previous_avgs: [Seconds]
+}
+
+input IdleInput {
+    times_idle: [Seconds]
+    avg_idle_time: Seconds
+    previous_avgs: [Seconds]
+}
+
+type Member {
+    id: DatabaseId!
+    member_id: Snowflake!
+    username: String!
+    nickname: String
+    last_activity: Activity
+    idle_stats: IdleStats
+    status: STATUS!
+    date_added: DateTime!
+}
+
+type SettingsObject {
+    kick_inactive_members: Boolean!
+    time_before_inactive: [Int]!
+}
+
+input SettingsInput {
+    kick_inactive_members: Boolean
+    time_before_inactive: [Int]
+}
+
+type Guild {
+    id: DatabaseId!
+    guild_id: Snowflake!
+    name: String!
+    last_activity: Activity
+    idle_stats: IdleStats
+    status: STATUS!
+    settings: SettingsObject!
+    members: [Member]!
+    date_added: DateTime
+}
+
+type GuildResponse implements Response {
+    code: String!
+    success: Boolean!
+    message: String
+    errors: [Error]
+    guild(guild_id: Snowflake!): Guild
+}
+
+type GuildsResponse implements Response {
+    code: String!
+    success: Boolean!
+    message: String
+    errors: [Error]
+    guilds: [Guild]
+}
+
+type MemberResponse implements Response {
+    code: String!
+    success: Boolean!
+    message: String
+    errors: [Error]
+    member(member_id: Snowflake): Member
+}
+
+type MembersResponse implements Response {
+    code: String!
+    success: Boolean!
+    message: String
+    errors: [Error]
+    members: [Member]
+}
+
+type DeleteResponse implements Response {
+    code: String!
+    success: Boolean!
+    message: String
+    errors: [Error]
+}
+
+type Query implements Q {
+    guild(guild_id: Snowflake!): GuildResponse
+    guilds: GuildsResponse
+    member(member_id: Snowflake!): MemberResponse
+    members: MembersResponse
+}
+
+type Mutation {
+    createGuild(guild_id: Snowflake!, name: String!): GuildResponse!
+    updateGuild(guild_id: Snowflake!, name: String, last_activity: ActivityInput, idle_stats: IdleInput, status: STATUS, settings: SettingsInput): GuildResponse!
+    deleteGuild(guild_id: Snowflake!): DeleteResponse!
+    createMember(guild_id: Snowflake!, member_id: Snowflake!, username: String!, nickname: String): MemberResponse!
+    updateMember(member_id: Snowflake!, nickname: String, last_activity: ActivityInput, idle_stats: IdleInput, status: STATUS): MemberResponse!
+    deleteMember(member_id: Snowflake!): DeleteResponse!
+}
