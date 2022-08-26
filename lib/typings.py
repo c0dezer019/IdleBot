@@ -1,6 +1,7 @@
 # Standard packages
+# Standard modules
 from datetime import datetime
-from typing import List, TypedDict
+from typing import Dict, List, TypedDict
 
 
 class Activity(TypedDict):
@@ -45,3 +46,8 @@ class DiscordGuild(TypedDict):
 class PurgeList(TypedDict):
     guild_id: int
     member_id: int
+
+
+class Query(TypedDict):
+    query: str
+    variables: Dict[str, str]

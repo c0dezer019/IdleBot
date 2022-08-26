@@ -10,6 +10,8 @@ asyncpg = "*"
 requests = "*"
 python-dotenv = "*"
 types-requests = "*"
+simplejson = "*"
+pydash = "*"
 
 [dev-packages]
 autopep8 = "*"
