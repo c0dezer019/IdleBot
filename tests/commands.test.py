@@ -1,4 +1,4 @@
-# Standard packages
+# Standard modules
 import unittest
 
 

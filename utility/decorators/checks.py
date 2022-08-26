@@ -1,4 +1,4 @@
-# Third party packages
+# Third party modules
 from discord.ext import commands
 
 

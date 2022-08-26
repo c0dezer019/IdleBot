@@ -1,8 +1,8 @@
-# Standard packages
+# Standard modules
 import datetime
 from typing import Dict
 
-# Third party packages
+# Third party modules
 import arrow
 from discord import Member, TextChannel
 from discord.ext.commands import Bot, Cog, Context, MemberNotFound, command

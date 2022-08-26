@@ -1,6 +1,8 @@
 # Standard packages
+# Standard modules
 from typing import Optional
 
+# Third party modules
 # Third party packages
 from discord.ext.commands import CheckFailure, Cog, Context, command
 

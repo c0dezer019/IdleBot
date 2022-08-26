@@ -1,4 +1,4 @@
-# Third party packages
+# Third party modules
 from discord import Guild
 from discord.ext.commands import Bot, Cog, bot_has_guild_permissions
 from discord.utils import find

@@ -1,7 +1,7 @@
-# Standard packages
+# Standard modules
 from typing import Optional
 
-# Third party packages
+# Third party modules
 from discord import Member
 from discord.ext.commands import (
     Bot,

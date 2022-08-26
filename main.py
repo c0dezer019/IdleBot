@@ -1,10 +1,10 @@
-# Standard packages
+# Standard modules
 import logging
 import os
 import traceback
 from logging.handlers import RotatingFileHandler
 
-# Third party packages
+# Third party modules
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv

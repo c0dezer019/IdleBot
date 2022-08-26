@@ -1,16 +1,16 @@
-# Standard packages
+# Standard modules
 import json
 from typing import Dict
 
-# Third party packages
+# Third party modules
 import arrow
 from discord import Game, Guild, Member, Message, TextChannel, User
 from discord.ext.commands import Bot, Cog
 from discord.utils import get
 
 # Internal modules
-import utility.request_handler as rh
-from utility.helpers import check_idle_time
+import lib.utility.request_handler as rh
+from lib.utility.helpers import _check_time_idle
 
 
 class Listeners(Cog):
@@ -63,7 +63,7 @@ class Listeners(Cog):
 
             if not message.author.bot:
                 dt: arrow.Arrow = arrow.now("US/Central")
-                get_idle_time: dict = check_idle_time(dt.datetime)
+                get_time_idle: dict = _check_time_idle(dt.datetime)
 
                 with open("utility/storeTest.json", "r") as file:
                     data: Dict = json.load(file)
@@ -90,14 +90,15 @@ class Listeners(Cog):
                 }
 
                 for k in data.keys():
-                    k["idle_times"].append(get_idle_time)  # History of times idle.
-                    k["idle_time_avg"] = sum(k["idle_times"]) / len(
-                        k["idle_times"]
+                    k = k["idle_stats"]
+                    k["times_idle"].append(get_time_idle)  # History of times idle.
+                    k["avg_idle_time"] = sum(k["times_idle"]) / len(
+                        k["times_idle"]
                     )  # Current idle time averages
-                    k["idle_time_avgs"].append(k["idle_time_avg"])  # Past averages
+                    k["previous_avgs"].append(k["avg_idle_time"])  # Past averages
 
-                    if len(k["idle_times"]) > 50:
-                        k["idle_times"].remove(k["idle_times"][0])
+                    if len(k["times_idle"]) > 50:
+                        k["times_idle"].remove(k["times_idle"][0])
 
         elif (
             not message.guild
