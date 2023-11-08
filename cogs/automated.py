@@ -4,8 +4,8 @@ from typing import List
 
 # Third party modules
 # from discord import Forbidden, HTTPException
-from discord.ext.commands import Bot, Cog
-from discord.ext.tasks import loop
+from nextcord.ext.commands import Bot, Cog
+from nextcord.ext.tasks import loop
 
 # Internal modules
 import utility.request_handler as rh

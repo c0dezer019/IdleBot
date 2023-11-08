@@ -1,7 +1,7 @@
 # Third party modules
-from discord import Guild
-from discord.ext.commands import Bot, Cog, bot_has_guild_permissions
-from discord.utils import find
+from nextcord import Guild
+from nextcord.ext.commands import Bot, Cog, bot_has_guild_permissions
+from nextcord.utils import find
 
 # Internal modules
 import utility.request_handler as rh
