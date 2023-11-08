@@ -131,7 +131,7 @@ def get_guilds(guild_id: Optional[int] = None):
                     }
                     status
                     settings {
-                        kick_inactive_members
+                        auto_kick
                         time_before_inactive
                     }
                     members {
@@ -245,7 +245,7 @@ def add_guild(guild_info: Dict):
                             }
                             status
                             settings {
-                                kick_inactive_members
+                                auto_kick
                                 time_before_inactive
                             }
                             date_added
@@ -443,7 +443,7 @@ def update_guild(guild_id: int, **data):
                     }
                     status
                     settings {
-                        kick_inactive_members
+                        auto_kick
                         time_before_inactive
                     }
                     date_added

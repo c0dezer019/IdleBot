@@ -4,13 +4,13 @@ from typing import Dict
 
 # Third party modules
 import arrow
-from discord import Game, Guild, Member, Message, TextChannel, User
-from discord.ext.commands import Bot, Cog
-from discord.utils import get
+from nextcord import Game, Guild, Member, Message, TextChannel, User
+from nextcord.utils import get
+from nextcord.ext.commands import Bot, Cog
 
 # Internal modules
-import lib.utility.request_handler as rh
-from lib.utility.helpers import _check_time_idle
+import utility.request_handler as rh
+from utility.helpers import _check_time_idle
 
 
 class Listeners(Cog):
@@ -27,7 +27,7 @@ class Listeners(Cog):
 
         print()  # An empty line for formatting.
 
-        guilds = rh.get_guild().json()["guilds"]
+        guilds = rh.get_guilds().json()["guilds"]
 
         with open("utility/storeTest.json", "w") as file:
             json.dump(guilds, file, indent=3)
