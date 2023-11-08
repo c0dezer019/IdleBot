@@ -5,13 +5,13 @@ name = "pypi"
 
 [packages]
 arrow = "*"
-"discord.py" = "*"
 asyncpg = "*"
 requests = "*"
 python-dotenv = "*"
 types-requests = "*"
 simplejson = "*"
 pydash = "*"
+nextcord = "*"
 
 [dev-packages]
 autopep8 = "*"
