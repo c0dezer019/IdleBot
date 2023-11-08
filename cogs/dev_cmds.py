@@ -1,10 +1,11 @@
 # Standard packages
+
 # Standard modules
 from typing import Optional
 
 # Third party modules
+from nextcord.ext.commands import Bot, CheckFailure, Cog, Context, command
 # Third party packages
-from discord.ext.commands import CheckFailure, Cog, Context, command
 
 # Internal modules
 import utility.request_handler as rh
@@ -14,6 +15,17 @@ from utility.decorators import user_is_bot_developer
 class DevCommands(Cog):
     def __init__(self, bot):
         self.bot = bot
+
+    @command(
+        hidden=True,
+        help=""
+    )
+    @user_is_bot_developer()
+    async def sync(self, ctx: Context):
+        if ctx.message.guild.id is not 820891105322074113:
+            await ctx.message.delete
+        else:
+            await ctx.guild.system_channel.send(ctx.message.channel.type)
 
     @command(
         hidden=True,
