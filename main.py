@@ -5,20 +5,21 @@ import traceback
 from logging.handlers import RotatingFileHandler
 
 # Third party modules
-import discord
-from discord.ext import commands
+from nextcord import Intents
+from nextcord.ext.commands import Bot
 from dotenv import load_dotenv
 
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
 
-description = """Got idle?"""
-intents = discord.Intents.default()
+description = """Got idle? Have no more"""
+intents = Intents.default()
 intents.members = True
 intents.guilds = True
 intents.message_content = True
 
-bot = commands.Bot(command_prefix="?", description=description, intents=intents)
+bot = Bot(description=description, intents=intents)
+
 extensions = [
     "cogs.admin_cmds",
     "cogs.dev_cmds",
