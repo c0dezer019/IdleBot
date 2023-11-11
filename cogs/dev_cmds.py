@@ -4,12 +4,12 @@
 from typing import Optional
 
 # Third party modules
-from nextcord.ext.commands import Bot, CheckFailure, Cog, Context, command
+from nextcord.ext.commands import CheckFailure, Cog, Context, command
 # Third party packages
 
 # Internal modules
 import utility.request_handler as rh
-from utility.decorators import user_is_bot_developer
+from utility.decorators.checks import user_is_bot_developer
 
 
 class DevCommands(Cog):
@@ -22,7 +22,7 @@ class DevCommands(Cog):
     )
     @user_is_bot_developer()
     async def sync(self, ctx: Context):
-        if ctx.message.guild.id is not 820891105322074113:
+        if ctx.message.guild.id != 820891105322074113:
             await ctx.message.delete
         else:
             await ctx.guild.system_channel.send(ctx.message.channel.type)

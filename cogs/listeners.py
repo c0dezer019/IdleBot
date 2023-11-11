@@ -16,7 +16,7 @@ from utility.helpers import _check_time_idle
 class Listeners(Cog):
     def __init__(self, bot: Bot):
         self.bot: Bot = bot
-        self.ignore_list: tuple = ("?ping", "?reset", "?check")
+        self.ignore_list: tuple = ("?ping", "?reset", "?check", "?sync")
 
     @Cog.listener()
     async def on_ready(self):

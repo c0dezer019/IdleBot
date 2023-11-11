@@ -61,4 +61,4 @@ if __name__ == "__main__":
     for cog in extensions:
         bot.load_extension(cog)
 
-bot.run(TOKEN, bot=True, reconnect=True)
+bot.run(TOKEN, reconnect=True)

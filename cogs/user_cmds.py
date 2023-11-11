@@ -4,13 +4,13 @@ from typing import Dict, Optional
 
 # Third party modules
 import arrow
-from nextcord import Interaction, Member, SlashOption
-from nextcord.ext.commands import Bot, Cog, slash_command
+from nextcord import Interaction, Member, SlashOption, slash_command
+from nextcord.ext.commands import Bot, Cog
 from requests import Response
 
 # Internal modules
 import utility.request_handler as rh
-from utility.helpers import check_idle_time
+from utility.helpers import _check_time_idle
 
 
 class UserCommands(Cog):
@@ -20,28 +20,30 @@ class UserCommands(Cog):
     help_lib: Dict = {
         "member_status": "member: Returns idle time of the specified member",
         "guild_status": "Returns the idle time of the guild",
-        "bot_performance": " This command returns various "
-        "performance stats for the bot such as latency between bot and Discord API and latency "
-        "the bot's front and backend.",
+        "bot_performance": "Performance stats for the bot",
         "guild_health": "Provides a link to a page that contains various graphs "
         "and charts to illustrate the overall activity of a server.",
     }
 
 
-    @slash_command(name="Status")
+    @slash_command(name="status")
     async def status_command(self, interaction: Interaction):
         pass
 
 
     @status_command.subcommand(name = "member", description = help_lib["member_status"])
-    async def member_status_command(interaction: Interaction, member: Optional[Member] = SlashOption(required=False)):
+    async def member_status_command(
+        self,
+        interaction: Interaction,
+        member: Optional[Member] = SlashOption(required=False)
+    ):
         response: Response = rh.get_members(member.id)
 
         response_as_dict: Dict = response.json()["member"]
         iso_timestamp: str = response_as_dict["last_activity_ts"]
         status: str = response_as_dict["status"]
         timestamp: datetime.datetime = arrow.get(iso_timestamp).datetime
-        get_idle_time: Dict = check_idle_time(timestamp)
+        get_idle_time: Dict = _check_time_idle(timestamp)
 
         if status != "active":
             await interaction.response.send_message(
@@ -73,14 +75,14 @@ class UserCommands(Cog):
 
 
     @status_command.subcommand(name = "guild", description = help_lib["guild_status"])
-    async def guild_status_command(interaction: Interaction):
-        response: Response = rh.get_guild(interaction.guild.id)
+    async def guild_status_command(self, interaction: Interaction):
+        response: Response = rh.get_guilds(interaction.guild.id)
 
         response_as_dict: Dict = response.json()["guild"]
         iso_timestamp: str = response_as_dict["last_activity_ts"]
         status: str = response_as_dict["status"]
         timestamp: datetime.datetime = arrow.get(iso_timestamp).datetime
-        get_idle_time: Dict = check_idle_time(timestamp)
+        get_idle_time: Dict = _check_time_idle(timestamp)
 
         if status != "active":
             await interaction.response.send_message(
@@ -111,13 +113,13 @@ class UserCommands(Cog):
             await interaction.response.send_message(response_str)
 
 
-    @slash_command(name = "BotPerformanceCheck", description = help_lib["bot_performance"])
-    async def performance_check_command(interaction: Interaction):
+    @slash_command(name = "bot_performance_check", description = help_lib["bot_performance"])
+    async def performance_check_command(self, interaction: Interaction):
         pass
 
 
     @slash_command(name="guild_health", description=["guild_health"])
-    async def guild_health(interaction: Interaction):
+    async def guild_health(self, interaction: Interaction):
         pass
 
 
