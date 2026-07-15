@@ -164,3 +164,7 @@ bot_log.*
 storeTest.json
 
 *.code-workspace
+
+.claude
+CLAUDE.md
+graphify-out

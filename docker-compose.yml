@@ -1,19 +1,13 @@
 services:
   redis:
-    image: redis-local
+    build:
+      context: .
+      dockerfile: redis.Dockerfile
     container_name: presence-redis
-    command: redis-server --appendonly yes
-    ports:
-      - "6379:6379"
     volumes:
-      - redis_data:/data
+      - redis_data:/var/lib/redis
     networks:
       - app_network
-    healthcheck:
-      test: ["CMD", "redis-cli", "PING"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     restart: unless-stopped
 
   bot:
