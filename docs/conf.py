@@ -4,7 +4,7 @@
 project = "Presence"
 copyright = "2026, Brian Blankenship"
 author = "Brian Blankenship"
-release = "0.5.0"
+release = "0.6.0"
 
 extensions = [
     "sphinx.ext.autodoc",
