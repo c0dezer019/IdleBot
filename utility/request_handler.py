@@ -1,581 +1,406 @@
 # Standard modules
 import logging
 import traceback
+from dataclasses import dataclass
+from enum import Enum
 from time import perf_counter, perf_counter_ns
-from typing import Dict, List, TypedDict
 
-# Third-party modules
+# Third party modules
 import requests
 from nextcord import Member
 from requests import Response
 
-from lib.typings import Member as GQLMember, DiscordGuild
-
-api_url_dev = "http://localhost:8000/gql"
-api_base_url_prod = "https://combot.bblankenship.me/v1/"
-
-
-class Query(TypedDict):
-    query: str
-    variables: Dict
+# Internal modules
+from lib.queries import queries
+from lib.typings import DiscordGuild, Member as GQLMember, Query
 
 
-headers = {"Content-Type": "application/json"}
+class PurgeListError(Exception):
+    """Raised when a purge list operation fails."""
 
 
-def get_purge_list():
-    func_start: float = perf_counter()
-    payload: Query = {
-        "query": """
-            query PurgeList {
-                code
-                success
-                message
-                errors
-                list {
-                    guildId
-                    members {
-                        memberId
-                    }
-                }
-            }
+class Environment(Enum):
+    """API environment configuration."""
+
+    DEV = "development"
+    PROD = "production"
+
+
+@dataclass
+class RequestHandlerConfig:
+    """Configuration for the RequestHandler class."""
+
+    api_url_dev: str = "http://localhost:8000/gql"
+    api_url_prod: str = "https://combot.bblankenship.me/v1/"
+    headers: dict[str, str] | None = None
+
+    def __post_init__(self):
+        if self.headers is None:
+            self.headers = {"Content-Type": "application/json"}
+
+
+class RequestHandler:
+    """Handles GraphQL API requests for the Discord bot."""
+
+    def __init__(
+        self,
+        environment: Environment = Environment.DEV,
+        config: RequestHandlerConfig | None = None,
+    ):
+        """Initialize the request handler.
+
+        Args:
+            environment: The API environment to use (dev/prod)
+            config: Optional configuration override
         """
-    }
-    logging.info("Fetching purge list...")
+        self._config = config or RequestHandlerConfig()
+        self._environment = environment
+        self._logger = logging.getLogger(__name__)
 
-    response: Response = requests.post(api_url_dev, headers=headers, json=payload)
-    func_end: float = perf_counter()
-    time_to_complete: float = func_end - func_start
+    @property
+    def api_url(self) -> str:
+        """Get the current API URL based on environment."""
+        return (
+            self._config.api_url_dev
+            if self._environment == Environment.DEV
+            else self._config.api_url_prod
+        )
 
-    logging.info("Purge list retrieved.")
-    logging.info(
-        f"Operation completed in {time_to_complete} seconds.\n-------------------------"
-    )
+    @property
+    def headers(self) -> dict[str, str] | None:
+        """Get the request headers."""
+        return self._config.headers
 
-    return response
+    def _log_operation_time(self, operation: str, start_time: float) -> None:
+        """Log the time taken for an operation.
 
-
-def remove_from_purge_list(member_id: int):
-    func_start: float = perf_counter()
-    payload: Query = {
-        "query": """
-            mutation DeletePurgeListEntry($memberId: Snowflake!) {
-                deletePurgeListEntry(memberId: $memberId) {
-                    code
-                    success
-                    errors
-                }
-            }
+        Args:
+            operation: Name of the operation
+            start_time: Start time from perf_counter()
         """
-    }
+        end_time = perf_counter()
+        time_to_complete = end_time - start_time
+        self._logger.info(
+            f"{operation} completed in {time_to_complete} seconds.\n-------------------------"
+        )
 
-    logging.info(f"Removing member {member_id} from purge list...")
+    def get_purge_list(self) -> Response:
+        """Get the list of members to be purged.
 
-    response: Response = requests.post(api_url_dev, headers=headers, json=payload)
-    func_end: float = perf_counter()
-    time_to_complete: float = func_end - func_start
-
-    logging.info(
-        f"Operation finished in {time_to_complete} seconds.\n-------------------------"
-    )
-
-    if response.status_code == 200:
-        pass
-    else:
-        raise
-
-
-def add_to_purge_list(guild_id: int, member_id: int):
-    func_start: float = perf_counter()
-    payload: Query = {
-        "query": """
-            mutation AddToPurgeList($memberId: Snowflake!, $guildId: Snowflake!) {
-                addToPurgeList(memberId: $memberId, guildId: $guildId) {
-                    code
-                    success
-                    errors
-                }
-            }
-        """,
-        "variables": {"memberId": member_id, "guildId": guild_id},
-    }
-
-    logging.info("Adding new purge entry.")
-
-    response: Response = requests.post(api_url_dev, headers=headers, json=payload)
-    func_end: float = perf_counter()
-    time_to_complete: float = func_end - func_start
-
-    logging.info(
-        f"Operation finished in {time_to_complete} seconds.\n-------------------------"
-    )
-
-    return response
-
-
-def guild(guild_id: int) -> DiscordGuild:
-    func_start = perf_counter()
-
-    payload: Query = {
-        "query": """
-                query Guild($guild_id: Snowflake!) {
-                    guild {
-                        guild(guild_id: $snowflake) {
-                            code
-                            success
-                            created
-                            errors
-                            guild {
-                                guildId
-                                lastAct {
-                                    ch
-                                    type
-                                    ts
-                                }
-                                idleStats {
-                                    timesIdle
-                                    prevAvgs
-                                }
-                                status
-                                settings
-                                members {
-                                   memberId
-                                   adminAccess
-                                   status
-                                   flags
-                                   lastAct {
-                                        ch
-                                        type
-                                        ts
-                                    }
-                                    idleStats {
-                                        timesIdle
-                                        prevAvgs
-                                    }
-                                   dateAdded
-                                }
-                                dateAdded
-                            }
-                        }
-                    }
-                }
-            """,
-        "variables": {"guild_id": guild_id},
-    }
-
-    response: Response = requests.post(api_url_dev, headers=headers, json=payload)
-
-    logging.info("Guild query complete.")
-
-    func_end = perf_counter()
-    time_to_complete = func_end - func_start
-
-    logging.info(
-        f"Operation finished in {time_to_complete} seconds.\n-------------------------"
-    )
-
-    return response.json()["data"]["guild"]["guild"]
-
-
-# Will get a specified guild or all guilds if no id is specified.
-def get_guilds() -> list[DiscordGuild]:
-    func_start = perf_counter()
-    payload: Query = {
-        "query": """
-            query Guilds {
-                guild {
-                    guilds {
-                        code
-                        success
-                        errors
-                        guilds {
-                            guildId
-                            lastAct {
-                                ch
-                                type
-                                ts
-                            }
-                            idleStats {
-                                timesIdle
-                                prevAvgs
-                            }
-                            status
-                            settings
-                            members {
-                                memberId
-                                adminAccess
-                                status
-                                flags
-                                lastAct {
-                                    ch
-                                    type
-                                    ts
-                                }
-                                idleStats {
-                                    timesIdle
-                                    prevAvgs
-                                }
-                                dateAdded
-                            }
-                            dateAdded
-                        }
-                    }
-                }
-            }
+        Returns:
+            Response: The API response containing the purge list
         """
-    }
-    logging.info("Initiating guild query...")
+        start_time = perf_counter()
+        payload = Query(query=queries["purge_list"])
+        self._logger.info("Fetching purge list...")
+        response = requests.post(self.api_url, headers=self.headers, json=payload.model_dump())
+        self._log_operation_time("Purge list retrieval", start_time)
+        return response
 
-    response: Response = requests.post(api_url_dev, headers=headers, json=payload)
-    func_end = perf_counter()
-    time_to_complete = func_end - func_start
+    def remove_from_purge_list(self, member_id: int) -> None:
+        """Remove a member from the purge list.
 
-    logging.info("Guild query complete.")
-    logging.info(
-        f"Operation finished in {time_to_complete} seconds.\n-------------------------"
-    )
-
-    return response.json()["data"]["guild"]["guilds"]
-
-
-def reset_guild(guild_id: int):
-    logging.info(f"Resetting guild data for guild {guild_id}.")
-
-
-def get_members() -> GQLMember:
-    func_start: float = perf_counter()
-
-    payload: Query = {
-        "query": """
-            query Members {
-                member {
-                    member {
-                        code
-                        success
-                        errors
-                        members {
-                            memberId
-                            adminAccess
-                            status
-                            flags
-                            lastAct {
-                                ch
-                                type
-                                ts
-                            }
-                            idleStats {
-                                timesIdle
-                                prevAvgs
-                            }
-                            dateAdded
-                        }
-                    }
-                }
-            }
+        Args:
+            member_id: The Discord ID of the member to remove
         """
-    }
-
-    logging.info("Initiating member query...")
-
-    response: Response = requests.post(api_url_dev, headers=headers, json=payload)
-    func_end: float = perf_counter()
-    time_to_complete: float = func_end - func_start
-
-    logging.info("Query complete.")
-    logging.info(
-        f"Operation finished in {time_to_complete} seconds.\n-------------------------"
-    )
-
-    return response.json()["data"]["member"]["member"]
-
-
-def member(guild_id: int, member: Member) -> GQLMember:
-    logging.info("Attempting to fetch a member...")
-
-    func_start: float = perf_counter()
-
-    payload: Query = {
-        "query": """
-            query GetMember($guildId: Snowflake!, $memberId: Snowflake!) {
-                member {
-                    member(guildId: $guildId, memberId: $memberId) {
-                        code
-                        success
-                        created
-                        errors
-                        member {
-                            memberId
-                            adminAccess
-                            status
-                            flags
-                            lastAct {
-                                ch
-                                type
-                                ts
-                            }
-                            idleStats {
-                                timesIdle
-                                prevAvgs
-                            }
-                            dateAdded
-                        }
-                    }
-                }
-            }
-        """,
-        "variables": {
-            "guildId": guild_id,
-            "memberId": member.id,
-        },
-    }
-
-    response: Response = requests.post(api_url_dev, headers=headers, json=payload)
-
-    func_end: float = perf_counter()
-    time_to_complete = func_end - func_start
-
-    logging.info("Query complete.")
-    logging.info(
-        f"Operation finished in {time_to_complete} seconds.\n-------------------------"
-    )
-
-    return response.json()["data"]["member"]["member"]
-
-
-def update_guild(guild_id: int, **data) -> DiscordGuild:
-    logging.info("Updating guild...")
-    func_start: float = perf_counter()
-
-    payload: Query = {
-        "query": """
-            mutation UpdateGuild (
-                $guildId: Snowflake!,
-                $input: GuildUpdate
-            ) {
-                guild {
-                    updateGuild (
-                        guildId: $guildId,
-                        input: $input
-                    ) {
-                        guild {
-                            guildId
-                            lastAct {
-                                ch
-                                type
-                                ts
-                            }
-                            idleStats {
-                                timesIdle
-                                prevAvgs
-                            }
-                            status
-                            settings
-                            dateAdded
-                        }
-                    }
-                }
-            }
-        """,
-        "variables": {"guildId": guild_id, "input": {k: v for k, v in data}},
-    }
-
-    logging.info("Building payload...")
-
-    item_list: List[str] = list(data.keys())
-    loop_times: List[float] = []
-
-    for k, v in data.items():
-        loop_start: float = perf_counter_ns() / 1000
-        payload["variables"][k] = v
-        percentage_complete: int = int((item_list.index(k) + 1) / len(item_list) * 100)
-        loop_end: float = perf_counter_ns() / 1000
-        time_to_complete: float = loop_end - loop_start
-        loop_times.append(time_to_complete)
-
-        logging.info(
-            f"Payload {percentage_complete}% complete. {time_to_complete} microseconds."
+        start_time = perf_counter()
+        payload = Query(
+            query=queries["delete_purge_entry"],
+            variables={"memberId": member_id},
         )
 
-        if percentage_complete == 100:
-            logging.info("Payload complete.")
-            logging.info(f"Items to be patched:\n{payload['variables']}\n")
-            logging.info(f"Operation finished in {sum(loop_times)} microseconds.")
+        self._logger.info(f"Removing member {member_id} from purge list...")
+        response = requests.post(self.api_url, headers=self.headers, json=payload.model_dump())
+        self._log_operation_time("Purge list removal", start_time)
 
-    logging.info("Patching...")
+        if response.status_code != 200:
+            raise PurgeListError(f"Failed to remove member {member_id} from purge list")
 
-    guild: Response = requests.patch(api_url_dev, headers=headers, json=payload)
+    def add_to_purge_list(self, guild_id: int, member_id: int) -> Response:
+        """Add a member to the purge list.
 
-    if guild.status_code != 200:
-        func_end = perf_counter()
-        time_to_complete = func_end - func_start
-        logging.error("Patching guild failed.")
-        logging.info(
-            f"Operation finished in {time_to_complete} seconds.\n-------------------------"
+        Args:
+            guild_id: The Discord ID of the guild
+            member_id: The Discord ID of the member
+
+        Returns:
+            Response: The API response
+        """
+        start_time = perf_counter()
+        payload = Query(
+            query=queries["add_to_purge_list"],
+            variables={"memberId": member_id, "guildId": guild_id},
         )
 
-        return guild.status_code
+        self._logger.info("Adding new purge entry...")
+        response = requests.post(self.api_url, headers=self.headers, json=payload.model_dump())
+        self._log_operation_time("Purge list addition", start_time)
+        return response
 
-    func_end: float = perf_counter()
-    time_to_complete: float = func_end - func_start
+    def create_guild(self, guild_id: int, name: str) -> DiscordGuild:
+        start_time = perf_counter()
+        self._logger.info(f"Adding guild {name}: {guild_id}")
+        payload = Query(
+            query=queries["create_guild"],
+            variables={"input": {"guildId": guild_id, "name": name}},
+        )
+        response = requests.post(self.api_url, headers=self.headers, json=payload.model_dump())
+        self._log_operation_time("Create guild", start_time)
 
-    logging.info(
-        f"Operation finished in {time_to_complete} seconds.\n-------------------------"
-    )
+        return response.json()["data"]["guild"]
 
-    return guild.json()["data"]["guild"]["guild"]
+    def get_guild(self, guild_id: int) -> DiscordGuild:
+        """Get information about a specific guild.
 
+        Args:
+            guild_id: The Discord ID of the guild
 
-# data - Received as 'nickname', 'last_activity', etc
-def update_member(guild_id: int, member_id: int, **data) -> GQLMember:
-    func_start: float = perf_counter()
-
-    payload: Query = {
-        "query": """
-            mutation UpdateMember(
-                $memberId: Snowflake!,
-                $guildId: Snowflake!,
-                $input: MemberUpdate
-            ) {
-                member {
-                    updateMember(
-                        memberId: $memberId,
-                        guildId: $guildId,
-                        input: $input
-                    ) {
-                        code
-                        success
-                        errors
-                        member {
-                            snowflake
-                            name
-                            lastAct {
-                                ch
-                                type
-                                ts
-                            }
-                            idleStats {
-                                timesIdle
-                                avgIdleTime
-                                prevAvgs
-                            }
-                        status
-                        dateAdded
-                    }
-                }
-            }
-        """,
-        "variables": {
-            "guild_id": guild_id,
-            "memberId": member_id,
-            "input": {k: v for k, v in data},
-        },
-    }
-
-    # Need to DRY this up some.
-    item_list: List[str] = list(data.keys())
-    loop_times: List[float] = []
-
-    for k, v in data.items():
-        loop_start: float = perf_counter_ns() / 1000
-
-        payload["variables"][k] = v
-
-        percentage_complete: int = int((item_list.index(k) + 1) / len(item_list) * 100)
-        loop_end: float = perf_counter_ns() / 1000
-        time_to_complete: float = loop_end - loop_start
-        loop_times.append(time_to_complete)
-        logging.info(
-            f"Payload {percentage_complete}% complete. {time_to_complete} microseconds."
+        Returns:
+            DiscordGuild: The guild information
+        """
+        start_time = perf_counter()
+        payload = Query(
+            query=queries["get_guild"],
+            variables={"guildId": guild_id},
         )
 
-        if percentage_complete == 100:
-            logging.info("Payload complete.")
-            logging.info(f"Items to be patched:\n{payload['variables']}\n")
-            logging.info(f"Operation finished in {sum(loop_times)} microseconds.")
+        self._logger.info(f"Fetching guild {guild_id}...")
+        response = requests.post(self.api_url, headers=self.headers, json=payload.model_dump())
+        self._log_operation_time("Guild retrieval", start_time)
 
-    logging.info("Patching member...")
+        return response.json()["data"]["guild"]["guild"]
 
-    member: Response = requests.patch(api_url_dev, headers=headers, json=payload)
+    def get_guilds(self) -> list[DiscordGuild]:
+        """Get information about all guilds.
 
-    if member.status_code != 200:
-        logging.info("Unable to patch member.")
+        Returns:
+            list[DiscordGuild]: list of guild information
+        """
+        start_time = perf_counter()
+        payload = Query(query=queries["get_guilds"])
 
-        return member.status_code
+        self._logger.info("Fetching all guilds...")
+        response = requests.post(self.api_url, headers=self.headers, json=payload.model_dump())
+        self._log_operation_time("Guilds retrieval", start_time)
+        return response.json()["data"]["guild"]["guilds"]
 
-    func_end: float = perf_counter()
-    time_to_complete: float = func_end - func_start
+    def reset_guild(self, guild_id: int) -> None:
+        """Reset a guild's data.
 
-    logging.info("Member successfully patched.")
-    logging.info(
-        f"Operation finished in {time_to_complete} seconds.\n-------------------------"
-    )
+        Args:
+            guild_id: The Discord ID of the guild to reset
+        """
+        self._logger.info(f"Resetting guild data for guild {guild_id}.")
+        # TODO: Implement guild reset logic
 
-    return member.json()["data"]["member"]["member"]
+    def get_members(self) -> GQLMember:
+        """Get information about all members.
 
+        Returns:
+            GQLMember: Member information
+        """
+        start_time = perf_counter()
+        payload = Query(query=queries["get_members"])
 
-def remove_guild(guild_id: int):
-    func_start: float = perf_counter()
-    payload: Query = {
-        "query": """
-            mutation DeleteGuild ($guildId: Snowflake!) {
-                deleteGuild (guildId: $guildId) {
-                    guild {
-                        code
-                        success
-                        errors
-                    }
-                }
-            }
-        """,
-        "variables": {"guildId": guild_id},
-    }
+        self._logger.info("Fetching all members...")
+        response = requests.post(self.api_url, headers=self.headers, json=payload.model_dump())
+        self._log_operation_time("Members retrieval", start_time)
+        return response.json()["data"]["member"]["member"]
 
-    guild: Response = requests.delete(api_url_dev, headers=headers, json=payload)
-    func_end: float = perf_counter()
-    time_to_complete: float = func_end - func_start
+    def create_member(self, guild_id: int, member_id: int, username: str) -> GQLMember:
+        """Add a new member
 
-    if guild.json()["data"]["guild"]["code"] == 200:
-        logging.info("Guild removed.")
-        logging.info(
-            f"Operation finished in {time_to_complete} seconds.\n-------------------------"
+        Args:
+            guild_id: Discord Snowflake of the guild
+            member_id: Discord Snowflake of the member
+        """
+
+        start_time = perf_counter()
+        self._logger.info(f"Adding member {username} ({member_id}) to guild {guild_id}")
+
+        payload = Query(
+            query=queries["add_member"],
+            variables={
+                "guildId": guild_id,
+                "input": {"memberId": member_id, "username": username},
+            },
         )
-    else:
-        logging.debug(f"Failed to remove guild.\n\n{traceback.format_exc()}")
-        logging.info(
-            f"Operation finished in {time_to_complete} seconds.\n-------------------------"
+        response = requests.post(self.api_url, headers=self.headers, json=payload.model_dump())
+        self._log_operation_time("Create member", start_time)
+        return response.json()["data"]["member"]
+
+    def get_member(self, guild_id: int, member: Member) -> GQLMember:
+        """Get information about a specific member.
+
+        Args:
+            guild_id: The Discord ID of the guild
+            member: The Discord member object
+
+        Returns:
+            GQLMember: Member information
+        """
+        start_time = perf_counter()
+        payload = Query(
+            query=queries["get_member"],
+            variables={
+                "guildId": guild_id,
+                "memberId": member.id,
+            },
         )
 
+        self._logger.info(f"Fetching member {member.id}...")
+        response = requests.post(self.api_url, headers=self.headers, json=payload.model_dump())
+        self._log_operation_time("Member retrieval", start_time)
+        return response.json()["data"]["member"]["member"]
 
-def remove_member(member_id: int):
-    logging.info(f"Removing member {member_id}.")
-    func_start: float = perf_counter()
+    def update_guild(self, guild_id: int, **data: object) -> DiscordGuild | int:
+        """Update a guild's information.
 
-    payload: Query = {
-        "query": """
-            mutation DeleteMember ($memberId: Snowflake!) {
-                deleteMember (memberId: $memberId) {
-                    member {
-                        code
-                        success
-                        errors
-                    }
-                }
-            }
-        """,
-        "variables": {"memberId": member_id},
-    }
+        Args:
+            guild_id: The Discord ID of the guild
+            **data: Key-value pairs of data to update
 
-    member: Response = requests.delete(api_url_dev, headers=headers, json=payload)
-    func_end: float = perf_counter()
-    time_to_complete: float = func_end - func_start
+        Returns:
+            Union[DiscordGuild, int]: Updated guild information or status code on error
+        """
+        start_time = perf_counter()
+        self._logger.info("Updating guild...")
 
-    if member.json()["data"]["member"]["code"] == 200:
-        logging.info("Member removed.")
-        logging.info(
-            f"Operation finished in {time_to_complete} seconds.\n-------------------------"
+        payload = Query(
+            query=queries["update_guild"],
+            variables={
+                "guildId": guild_id,
+                "input": dict(data),
+            },
         )
-    else:
-        logging.debug(f"Failed to remove member.\n\n{traceback.format_exc()}")
-        logging.info(
-            f"Operation finished in {time_to_complete} seconds.\n-------------------------"
+
+        self._logger.info("Building payload...")
+
+        item_list: list[str] = list(data.keys())
+        loop_times: list[float] = []
+
+        # Process payload items
+        for k, v in data.items():
+            loop_start = perf_counter_ns() / 1000
+            payload.variables[k] = v
+            percentage_complete = int((item_list.index(k) + 1) / len(item_list) * 100)
+            loop_end = perf_counter_ns() / 1000
+            time_to_complete = loop_end - loop_start
+            loop_times.append(time_to_complete)
+
+            self._logger.info(
+                f"Payload {percentage_complete}% complete. {time_to_complete} microseconds."
+            )
+
+            if percentage_complete == 100:
+                self._logger.info("Payload complete.")
+                self._logger.info(f"Items to be patched:\n{payload.variables}\n")
+                self._logger.info(f"Operation finished in {sum(loop_times)} microseconds.")
+
+        self._logger.info("Patching...")
+        response = requests.patch(self.api_url, headers=self.headers, json=payload.model_dump())
+
+        if response.status_code != 200:
+            self._log_operation_time("Guild update (failed)", start_time)
+            return response.status_code
+
+        self._log_operation_time("Guild update", start_time)
+        return response.json()["data"]["guild"]["guild"]
+
+    def update_member(self, guild_id: int, member_id: int, **data: object) -> GQLMember | int:
+        """Update a member's information.
+
+        Args:
+            guild_id: The Discord ID of the guild
+            member_id: The Discord ID of the member
+            **data: Key-value pairs of data to update
+
+        Returns:
+            Union[GQLMember, int]: Updated member information or status code on error
+        """
+        start_time = perf_counter()
+        payload = Query(
+            query=queries["update_member"],
+            variables={
+                "guildId": guild_id,
+                "memberId": member_id,
+                "input": dict(data),
+            },
         )
+
+        # Process payload items
+        item_list: list[str] = list(data.keys())
+        loop_times: list[float] = []
+
+        for k, v in data.items():
+            loop_start = perf_counter_ns() / 1000
+            payload.variables[k] = v
+            percentage_complete = int((item_list.index(k) + 1) / len(item_list) * 100)
+            loop_end = perf_counter_ns() / 1000
+            time_to_complete = loop_end - loop_start
+            loop_times.append(time_to_complete)
+
+            self._logger.info(
+                f"Payload {percentage_complete}% complete. {time_to_complete} microseconds."
+            )
+
+            if percentage_complete == 100:
+                self._logger.info("Payload complete.")
+                self._logger.info(f"Items to be patched:\n{payload.variables}\n")
+                self._logger.info(f"Operation finished in {sum(loop_times)} microseconds.")
+
+        self._logger.info("Patching member...")
+        response = requests.patch(self.api_url, headers=self.headers, json=payload.model_dump())
+
+        if response.status_code != 200:
+            self._logger.info("Unable to patch member.")
+            return response.status_code
+
+        self._log_operation_time("Member update", start_time)
+        return response.json()["data"]["member"]["member"]
+
+    def remove_guild(self, guild_id: int) -> None:
+        """Remove a guild from the system.
+
+        Args:
+            guild_id: The Discord ID of the guild to remove
+        """
+        start_time = perf_counter()
+        payload = Query(
+            query=queries["delete_guild"],
+            variables={"guildId": guild_id},
+        )
+
+        response = requests.delete(self.api_url, headers=self.headers, json=payload.model_dump())
+        response_data = response.json()["data"]["guild"]
+
+        if response_data["code"] == 200:
+            self._logger.info("Guild removed.")
+        else:
+            self._logger.debug(f"Failed to remove guild.\n\n{traceback.format_exc()}")
+
+        self._log_operation_time("Guild removal", start_time)
+
+    def remove_member(self, member_id: int) -> None:
+        """Remove a member from the system.
+
+        Args:
+            member_id: The Discord ID of the member to remove
+        """
+        start_time = perf_counter()
+        self._logger.info(f"Removing member {member_id}.")
+
+        payload = Query(
+            query=queries["delete_member"],
+            variables={"memberId": member_id},
+        )
+
+        response = requests.delete(self.api_url, headers=self.headers, json=payload.model_dump())
+        response_data = response.json()["data"]["member"]
+
+        if response_data["code"] == 200:
+            self._logger.info("Member removed.")
+        else:
+            self._logger.debug(f"Failed to remove member.\n\n{traceback.format_exc()}")
+
+        self._log_operation_time("Member removal", start_time)

@@ -5,6 +5,11 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 
+class Query(BaseModel):
+    query: str
+    variables: dict[str, object] = Field(default_factory=dict)
+
+
 class Activity(BaseModel):
     type: str
     ch: int
@@ -19,6 +24,7 @@ class IdleStats(BaseModel):
 
 class Member(BaseModel):
     member_id: int = Field(alias="memberId")
+    username: str
     admin_access: bool = Field(alias="adminAccess")
     flags: list[str]
     last_act: Activity = Field(alias="lastAct")
@@ -34,6 +40,7 @@ class Settings(BaseModel):
 
 class DiscordGuild(BaseModel):
     guild_id: int = Field(alias="guildId")
+    name: str
     last_act: Activity = Field(alias="lastAct")
     idle_stats: IdleStats = Field(alias="idleStats")
     status: str
@@ -44,8 +51,3 @@ class DiscordGuild(BaseModel):
 class PurgeList(BaseModel):
     guild_id: int
     member_id: int
-
-
-class Query(BaseModel):
-    query: str
-    variables: dict[str, str]
