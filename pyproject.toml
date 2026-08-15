@@ -1,0 +1,25 @@
+[project]
+dependencies = []
+description = "Add your description here"
+name = "presence"
+readme = "README.md"
+requires-python = ">=3.12"
+version = "0.5.0"
+
+[tool.black]
+extend-exclude = '''
+/(
+  \.git
+  \.tox
+  \.venv
+  \.cfg
+  \.vscode
+  \.code-workspace
+  _build
+  build
+  dist
+)/
+'''
+include = '\.pyi?$'
+line-length = 99
+target-version = ['py312']

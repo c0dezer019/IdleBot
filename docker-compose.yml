@@ -1,0 +1,44 @@
+services:
+  redis:
+    build:
+      context: .
+      dockerfile: redis.Dockerfile
+    container_name: presence-redis
+    volumes:
+      - redis_data:/var/lib/redis
+    networks:
+      - app_network
+    restart: unless-stopped
+
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: presence
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      - TOKEN=${TOKEN}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - PYTHONUNBUFFERED=1
+      - DEV_MODE=true
+    networks:
+      - app_network
+    restart: unless-stopped
+    volumes:
+      - .:/app
+      - /app/.venv
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    stdin_open: true
+    tty: true
+
+volumes:
+  redis_data:
+    driver: local
+
+networks:
+  app_network:
+    driver: bridge
