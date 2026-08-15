@@ -23,12 +23,15 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - PYTHONUNBUFFERED=1
+      - DEV_MODE=true
     networks:
       - app_network
     restart: unless-stopped
     volumes:
       - .:/app
       - /app/.venv
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     stdin_open: true
     tty: true
 
