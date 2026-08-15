@@ -1,4 +1,5 @@
 # Standard modules
+import asyncio
 import logging
 import os
 import traceback
@@ -8,14 +9,16 @@ from logging.handlers import RotatingFileHandler
 from dotenv import load_dotenv
 from nextcord import Game, Intents
 from nextcord.ext.commands import Bot
+from redis.exceptions import ConnectionError, RedisError
 
 # Internal modules
-from utility.redis import create_redis_connection
+from utility.redis import AsyncRedisManager
 
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
+DEV_MODE = os.getenv("DEV_MODE", "false").lower() == "true"
 
-redis = create_redis_connection()
+redis = AsyncRedisManager().client
 
 description = """Got idle? Have no more"""
 intents = Intents.default()
@@ -34,6 +37,7 @@ extensions = [
     "cogs.user_cmds",
 ]
 ignore_list: tuple = ("?ping", "?reset", "?check")
+logger = logging.getLogger(__name__)
 
 
 @bot.event
@@ -41,17 +45,28 @@ async def on_ready():
     global redis
 
     if redis is None:
+        redis = AsyncRedisManager().client
+
+    while True:
         try:
-            redis = create_redis_connection()
-        except Exception as e:
-            logging.error("Still cannot connect to Redis: %s", e)
+            if await redis.ping():
+                logger.info("Redis successfully connected.")
+                break
+        except ConnectionError as e:
+            logger.error("Cannot connect to Redis: %s", e)
+        except RedisError as e:
+            logger.error("Connect connect to Redis: %s", e)
+
+        await asyncio.sleep(5)
+
+    await bot.sync_application_commands()
 
     print(f"{bot.user} is connected to the following guilds:")
 
     for guild in bot.guilds:
         health = (
             "\033[32mOK\033[0m"
-            if redis.exists(f"guild:{guild.id}:meta")
+            if await redis.exists(f"guild:{guild.id}:meta")
             else "\033[31mX\033[0m"
         )
 
@@ -59,11 +74,14 @@ async def on_ready():
             f"\033[4;35m{guild.name}\033[0m (id: \033[1;34m{guild.id}\033[0m), \033[32mhealth:\033[0m {health}"
         )
 
-    print()  # An empty line for formatting.
-
-    await bot.sync_application_commands()
-
     await bot.change_presence(activity=Game("Cops and Robbers"))
+
+    if DEV_MODE and not getattr(bot, "_hot_reload_task", None):
+        # on_ready can fire again on reconnect; only start the watcher once.
+        from utility.hot_reload import watch_cogs
+
+        bot._hot_reload_task = asyncio.create_task(watch_cogs(bot))
+        logger.info("DEV_MODE enabled: cog hot reload active.")
 
 
 @bot.event
@@ -75,7 +93,7 @@ async def on_error(event, *args, **kwargs):
             await ctx.guild.system_channel.send(
                 "I have encountered an error but do not worry, I will alert my owner."
             )
-    logging.error(f"Error happened within {event}: {traceback.format_exc()}")
+    logger.error(f"Error happened within {event}: {traceback.format_exc()}")
 
 
 @bot.check
