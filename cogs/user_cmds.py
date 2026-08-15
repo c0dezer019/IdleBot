@@ -1,7 +1,7 @@
 # Standard modules
 import datetime
 import json
-from typing import Dict, Optional
+from typing import ClassVar
 
 # Third party modules
 import arrow
@@ -12,12 +12,14 @@ from nextcord.ext.commands import Bot, Cog
 from main import redis
 from utility.helpers import _check_time_idle
 
+_OPTIONAL_MEMBER = SlashOption(required=False)
+
 
 class UserCommands(Cog):
     def __init__(self, bot: Bot):
         self.bot: Bot = bot
 
-    help_lib: Dict = {
+    help_lib: ClassVar[dict] = {
         "member_status": "member: Returns idle time of the specified member",
         "guild_status": "Returns the idle time of the guild",
         "bot_performance": "Performance stats for the bot",
@@ -31,14 +33,16 @@ class UserCommands(Cog):
 
     @status_command.subcommand(name="member", description=help_lib["member_status"])
     async def member_status_command(
-        self, interaction: Interaction, member: Optional[Member] = SlashOption(required=False)
+        self, interaction: Interaction, member: Member | None = _OPTIONAL_MEMBER
     ):
-        member = json.loads(redis.hgetall(f"guild:{interaction.guild.id}:member:{member.id}"))
+        _json = json.dumps(await redis.hgetall(f"guild:{interaction.guild.id}:member:{member.id}"))
+        member = json.loads(_json)
+        print(member)
 
-        iso_timestamp: str = member["last_activity_ts"]
+        iso_timestamp: str = member.activity["ts"]
         status: str = member["status"]
         timestamp: datetime.datetime = arrow.get(iso_timestamp).datetime
-        get_idle_time: Dict = _check_time_idle(timestamp)
+        get_idle_time: dict = _check_time_idle(timestamp)
 
         if status != "active":
             await interaction.response.send_message(
@@ -62,8 +66,7 @@ class UserCommands(Cog):
                 idle_time: str = f"{years} years, " + idle_time
 
             response_str: str = (
-                f'Last activity for {member["name"]} was '
-                f"performed {idle_time} ago."
+                f'Last activity for {member["name"]} was ' f"performed {idle_time} ago."
             )
 
             await interaction.response.send_message(response_str)
@@ -76,7 +79,7 @@ class UserCommands(Cog):
         iso_timestamp: str = guild_s["last_activity_ts"]
         status: str = guild_m["status"]
         timestamp: datetime.datetime = arrow.get(iso_timestamp).datetime
-        get_idle_time: Dict = _check_time_idle(timestamp)
+        get_idle_time: dict = _check_time_idle(timestamp)
 
         if status != "active":
             await interaction.response.send_message(

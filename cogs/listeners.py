@@ -1,5 +1,5 @@
 # Standard modules
-import json
+import logging
 
 # Third party modules
 import arrow
@@ -9,8 +9,10 @@ from nextcord.utils import get
 
 # Internal modules
 import utility.request_handler as rh
+from lib.typings import Member as GQLMember
 from main import redis
-from utility.helpers import _check_time_idle
+
+logger = logging.getLogger(__name__)
 
 
 class Listeners(Cog):
@@ -25,70 +27,50 @@ class Listeners(Cog):
         general: TextChannel = get(member.guild.channels, name="general")
         sys_chan: TextChannel = member.guild.system_channel
 
-        if (
-            sys_chan
-            and sys_chan.permissions_for(self.bot.guilds[chan_index].me).send_messages
-        ):
-            await sys_chan.send("Welcome {0.mention}!".format(member))
+        if sys_chan and sys_chan.permissions_for(self.bot.guilds[chan_index].me).send_messages:
+            await sys_chan.send(f"Welcome {member.mention}!")
         else:
-            await general.send("Welcome {0.mention}!".format(member))
+            await general.send(f"Welcome {member.mention}!")
 
         try:
-            member = rh.member(member.guild.id, member)
+            db_member: GQLMember = rh.member(member.guild.id, member)
 
-            r_data = {k: "" if v is None else str(v) for k, v in member}
-            r_data["name"] = member.display_name if not member.nick else member.nick
-            r_data["status"] = member.status
+            r_data = {
+                "name": member.display_name if not member.nick else member.nick,
+                "status": db_member.status if db_member is not None else "new",
+                "admin_access": db_member.admin_access if db_member is not None else False,
+                "flags": db_member.flags if db_member is not None else [],
+                "discord_status": member.status,
+            }
 
-            redis.hset(f"member:{member.id}@{member.guild.id}", mapping=r_data)
+            redis.hset(f"member:{member.id}:{member.guild.id}:meta", mapping=r_data)
 
         except Exception:
-            raise
+            logger.warning("on_member_join: failed to sync member to Redis", exc_info=True)
 
     @Cog.listener()
     async def on_message(self, message: Message):
-        hset = redis.hset
-
         if message.guild is not None and message.author.status != "invisible":
             if message.content.startswith(self.ignore_list):
                 return
 
             if not message.author.bot:
-                dt: arrow.Arrow = arrow.utcnow().datetime
-                get_time_idle: dict = _check_time_idle(dt)
-                idle_stats: dict[str, int | list] = json.loads(
-                    redis.hget(f"guild_id:{message.guild.id}", "idleStats")
+                expire_at: arrow.Arrow = arrow.utcnow().shift(minutes=10).int_timestamp
+                block_key = f"session:{message.author.id}:{message.guild.id}:expires_at"
+
+                await redis.hset(
+                    f"member:{message.author.id}:{message.guild.id}:meta",
+                    "idles_at",
+                    expire_at,
                 )
-                last_loc = json.loads(redis.hget(f"guild_id:{message.guild.id}", "lastAct"))
-                last_loc["ch"] = message.channel.id
-                last_loc["type"] = str(message.channel.type)
-                last_loc["ts"] = arrow.utcnow().isoformat()
 
-                hset(f"guild_id:{message.guild.id}", "last_loc", mapping=last_loc)
-
-                idle_stats["timesIdle"].append(get_time_idle)
-
-                if idle_stats["avgIdleTime"]:
-                    idle_stats["prevAvgs"].append(idle_stats["avgIdleTime"])
+                if await redis.exists(block_key):
+                    await redis.expireat(block_key, expire_at)
                 else:
-                    pass
-
-                idle_stats["avgIdleTime"] = sum(idle_stats["timesIdle"]) / len(
-                    idle_stats["timesIdle"]
-                )
-
-                if len(idle_stats["timesIdle"]) > 50:
-                    idle_stats["timesIdle"].remove(idle_stats["timesIdle"][0])
-
-                if len(idle_stats["prevAvgs"]) > 50:
-                    idle_stats["prevAvgs"].remove(idle_stats["prevAvgs"][0])
-
-                hset(f"guild_id:{message.guild.id}", "idleStats", mapping=idle_stats)
+                    await redis.setex(block_key, expire_at, block_key)
 
         elif (
-            not message.guild
-            and str(message.channel.type) == "private"
-            and not message.author.bot
+            not message.guild and str(message.channel.type) == "private" and not message.author.bot
         ):
             await message.channel.send(
                 "Sorry, but I do not respond to DM's other than with this message. Try using me in a guild "
@@ -99,12 +81,10 @@ class Listeners(Cog):
     async def on_member_update(self, before: Member, after: Member):
         try:
             if before.nick != after.nick:
-                rh.update_member(after.id, **{"nickname": after.nick})
-            else:
-                pass
+                rh.update_member(after.id, {"nickname": after.nick})
 
         except AttributeError:
-            raise
+            logger.warning("on_member_update: missing attribute during nick sync", exc_info=True)
 
     @Cog.listener()
     async def on_user_update(self, before: User, after: User):
@@ -112,12 +92,10 @@ class Listeners(Cog):
             if before.name != after.name or before.discriminator != after.discriminator:
                 username = f"{after.name}#{after.discriminator}"
 
-                rh.update_member(after.id, **{"username": username})
-            else:
-                pass
+                rh.update_member(after.id, {"username": username})
 
         except Exception:
-            raise
+            logger.warning("on_user_update: failed to sync username", exc_info=True)
 
     """@Cog.listener()
     async def on_voice_state_update(
@@ -148,11 +126,9 @@ class Listeners(Cog):
     async def on_guild_update(self, before: Guild, after: Guild):
         try:
             if before.name != after.name:
-                rh.update_guild(after.id, **{"name": after.name})
-            else:
-                pass
+                rh.update_guild(after.id, {"name": after.name})
         except Exception:
-            raise
+            logger.warning("on_guild_update: failed to sync guild name", exc_info=True)
 
 
 def setup(bot):

@@ -1,11 +1,13 @@
 # Third party modules
 from nextcord import Guild
-from nextcord.ext.commands import Bot, Cog, bot_has_guild_permissions
+from nextcord.ext.commands import Bot, Cog
 from nextcord.utils import find
 
 # Internal modules
-import utility.request_handler as rh
 from main import redis
+from utility.request_handler import RequestHandler
+
+rh = RequestHandler()
 
 
 class Setup(Cog):
@@ -29,33 +31,25 @@ class Setup(Cog):
             )
 
     @Cog.listener("on_guild_join")
-    @bot_has_guild_permissions(administrator=True)
     async def setup(self, guild: Guild):
         sys_chan = guild.system_channel
+        response = rh.create_guild(guild.id, guild.name)
 
-        response = rh.guild(guild.id, guild.name)
-
-        if response["code"] != 200:
+        if response["createGuild"]["code"] != 200:
             await sys_chan.send(
                 "I couldn't find any coffee. I no workee without coffee. Please pass this code to my"
                 f" owner: {response.status_code}"
             )
         else:
-            if not redis.exists(f"guild:{guild.id}:meta"):
+            if not await redis.exists(f"guild:{guild.id}:meta"):
                 meta = {
-                    "guild_id": response["guild"]["guildId"],
+                    "guild_id": response["createGuild"]["guild"]["guildId"],
                     "name": guild.name,
-                    "status": response["guild"]["status"],
-                    "date_added": response["guild"]["dateAdded"]
+                    "status": response["createGuild"]["guild"]["status"],
+                    "date_added": response["createGuild"]["guild"]["dateAdded"],
                 }
-                redis.hset(f"guild:{guild.id}:meta", mapping=meta)
 
-                stats = {
-                    "last_act": response["guild"]["lastAct"],
-                    "idle_stats": response["guild"]["idleStats"],
-                    "settings": response["guild"]["settings"]
-                }
-                redis.hset(f"guild:{guild.id}:stats", mapping=stats)
+                await redis.hset(f"guild:{guild.id}:meta", mapping=meta)
 
             await sys_chan.send("I'm now in business! Time to start collecting names")
 
@@ -65,20 +59,21 @@ class Setup(Cog):
                 if member.bot:
                     continue
 
-                m_response = rh.member(guild.id, member)
+                m_response = rh.create_member(guild.id, member.id, member.name)
 
-                if m_response["code"] != 200:
+                if m_response["createMember"]["code"] != 200:
                     await sys_chan.send(
                         f"My pencil broke and I'm unable to write names. Received code {response['code']} from server."
                     )
                     break
 
-                if not redis.sismember(f"guild:{guild.id}:members", member.id):
-                    redis.sadd(f"guild:{guild.id}:members", member.id)
+                if not await redis.sismember(f"guild:{guild.id}:members", member.id):
+                    await redis.sadd(f"guild:{guild.id}:members", member.id)
                     r_data = {
                         k: "" if v is None else str(v)
-                        for k, v in m_response["member"].items()
+                        for k, v in m_response["createMember"]["member"].items()
                     }
+
                     r_data["name"] = member.display_name
                     pipe.hset(
                         f"guild:{guild.id}:member:{member.id}",
@@ -86,7 +81,7 @@ class Setup(Cog):
                     )
 
             if len(pipe.command_stack) > 0:
-                pipe.execute()
+                await pipe.execute()
 
             await sys_chan.send(
                 "Names have been collected, eyeglasses have been cleaned, and bunnies have been killed. Carry on"

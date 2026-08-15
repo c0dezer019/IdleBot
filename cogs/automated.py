@@ -1,6 +1,5 @@
 # Standard modules
 import logging
-from typing import List
 
 # Third party modules
 # from discord import Forbidden, HTTPException
@@ -31,7 +30,7 @@ class Automated(Cog):
 
     @loop(seconds=86400)
     async def purge(self):
-        purge_list: List[PurgeList] = rh.get_purge_list()["list"]
+        purge_list: list[PurgeList] = rh.get_purge_list()["list"]
         users_removed = 0
 
         for entry in purge_list:
@@ -47,9 +46,8 @@ class Automated(Cog):
 
     @purge.after_loop
     async def after_purge(self):
-        logging.info(f"Purge complete. {self.users_removed} removed.")
-        pass
+        logging.info(f"Purge complete. {self.lifetime_inactive_users_removed} removed.")
 
-    @purge.on_error
-    async def purge_error(self, event, *args, **kwargs):
-        pass
+    @purge.error
+    async def purge_error(self, exception: Exception):
+        logging.error("Daily purge failed: %s", exception, exc_info=exception)
